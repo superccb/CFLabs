@@ -1,0 +1,31 @@
+name = "ai-text-summarizer"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+ENVIRONMENT = "development"
+
+# AI 綁定 - Cloudflare Workers AI
+[[ai]]
+binding = "AI"
+
+# D1 數據庫配置 - 用於存儲內容和摘要
+[[d1_databases]]
+binding = "BLOG_SUMMARY"
+database_name = "blog_summary"
+database_id = "blog_summary_db"
+
+# KV 存儲配置 - 用於緩存摘要結果
+[[kv_namespaces]]
+binding = "SUMMARY_CACHE"
+id = "summary_cache_namespace"
+preview_id = "summary_cache_preview"
+
+# 環境配置
+[env.production]
+name = "ai-text-summarizer"
+vars = { ENVIRONMENT = "production" }
+
+[env.development]
+name = "ai-text-summarizer-dev"
+vars = { ENVIRONMENT = "development" } 

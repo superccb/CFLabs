@@ -1,0 +1,32 @@
+{
+  "name": "ai-text-summarizer",
+  "version": "1.0.0",
+  "description": "AI 文字摘要器 - 基於 Cloudflare Workers 的智能文本摘要服務",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "publish": "wrangler deploy --env production",
+    "kv:create": "wrangler kv:namespace create SUMMARY_CACHE",
+    "kv:create:preview": "wrangler kv:namespace create SUMMARY_CACHE --preview",
+    "d1:create": "wrangler d1 create blog_summary",
+    "d1:migrate": "wrangler d1 migrations apply blog_summary",
+    "setup": "npm run kv:create && npm run kv:create:preview && npm run d1:create && npm run d1:migrate"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "ai",
+    "text-summarization",
+    "nlp",
+    "serverless"
+  ],
+  "author": "CFLabs",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+} 

@@ -1,0 +1,25 @@
+name = "ai-image-generator"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+ENVIRONMENT = "development"
+
+# AI 綁定 - Cloudflare Workers AI
+[[ai]]
+binding = "AI"
+
+# KV 存儲配置 - 用於緩存生成的圖像
+[[kv_namespaces]]
+binding = "IMAGE_CACHE"
+id = "image_cache_namespace"
+preview_id = "image_cache_preview"
+
+# 環境配置
+[env.production]
+name = "ai-image-generator"
+vars = { ENVIRONMENT = "production" }
+
+[env.development]
+name = "ai-image-generator-dev"
+vars = { ENVIRONMENT = "development" } 
