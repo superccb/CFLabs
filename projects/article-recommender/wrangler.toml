@@ -1,0 +1,14 @@
+name = "article-recommender"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[[vectorize]]
+binding = "MAYX_INDEX"
+index_name = "mayx-index"
+dimensions = 768
+metric = "cosine"
+
+[[d1_databases]]
+binding = "BLOG_SUMMARY"
+database_name = "blog-summary"
+database_id = "your-database-id" 

@@ -1,0 +1,23 @@
+{
+  "name": "article-recommender",
+  "version": "1.0.0",
+  "description": "相似文章推薦系統 - 基於Cloudflare Vectorize的智能推薦",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "recommendation",
+    "vectorize",
+    "similarity",
+    "articles"
+  ],
+  "author": "CFLabs",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+} 

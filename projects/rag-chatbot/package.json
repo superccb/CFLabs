@@ -1,0 +1,23 @@
+{
+  "name": "rag-chatbot",
+  "version": "1.0.0",
+  "description": "RAG聊天機器人 - 基於Cloudflare Vectorize的知識庫AI助手",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "rag",
+    "chatbot",
+    "ai",
+    "vectorize"
+  ],
+  "author": "CFLabs",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+} 

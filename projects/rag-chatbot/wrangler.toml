@@ -1,0 +1,29 @@
+name = "rag-chatbot"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[ai]
+binding = "AI"
+
+[[ai.models]]
+binding = "AI"
+model = "@cf/qwen/qwen1.5-14b-chat-awq"
+
+[[ai.models]]
+binding = "AI"
+model = "@cf/meta/m2m100-1.2b"
+
+[[ai.models]]
+binding = "AI"
+model = "@cf/baai/bge-base-en-v1.5"
+
+[[vectorize]]
+binding = "MAYX_INDEX"
+index_name = "mayx-index"
+dimensions = 768
+metric = "cosine"
+
+[[d1_databases]]
+binding = "BLOG_SUMMARY"
+database_name = "blog-summary"
+database_id = "your-database-id" 
