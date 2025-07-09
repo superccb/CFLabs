@@ -1,0 +1,72 @@
+name: Deploy RSS Aggregator to Cloudflare Workers
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'projects/rss-aggregator/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'projects/rss-aggregator/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Cloudflare Workers
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: projects/rss-aggregator/package-lock.json
+          
+      - name: Install dependencies
+        run: |
+          cd projects/rss-aggregator
+          npm ci
+          
+      - name: Create KV namespaces
+        run: |
+          cd projects/rss-aggregator
+          echo "Creating KV namespaces..."
+          # 這些命令需要在部署前運行，創建必要的 KV 命名空間
+          npx wrangler kv:namespace create RSS_CACHE || true
+          npx wrangler kv:namespace create RSS_SOURCES || true
+          npx wrangler kv:namespace create RSS_CACHE --preview || true
+          npx wrangler kv:namespace create RSS_SOURCES --preview || true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          
+      - name: Deploy to Cloudflare Workers
+        run: |
+          cd projects/rss-aggregator
+          npx wrangler deploy --env production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          
+      - name: Run health check
+        run: |
+          echo "Waiting for deployment to be ready..."
+          sleep 30
+          
+          # 執行健康檢查（這裡需要替換為實際的部署URL）
+          # curl -f https://your-worker-domain.workers.dev/health || exit 1
+          
+      - name: Deploy notification
+        if: success()
+        run: |
+          echo "✅ RSS Aggregator deployed successfully!"
+          echo "🔗 Access your deployment at: https://your-worker-domain.workers.dev"
+          
+      - name: Deploy failure notification
+        if: failure()
+        run: |
+          echo "❌ RSS Aggregator deployment failed!"
+          echo "Please check the logs above for error details." 

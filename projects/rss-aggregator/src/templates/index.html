@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSS聚合器 - Powered by Cloudflare Workers</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            color: #7f8c8d;
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .controls-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+        
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #e67e22;
+            transform: translateY(-2px);
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .filter-group label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .status-indicator {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .feed-container {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .feed-item {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .feed-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(31, 38, 135, 0.5);
+        }
+        
+        .feed-item h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-size: 1.3em;
+        }
+        
+        .feed-item h3 a {
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        .feed-item h3 a:hover {
+            color: #3498db;
+        }
+        
+        .feed-description {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .feed-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+            color: #95a5a6;
+        }
+        
+        .feed-source {
+            background: #ecf0f1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        .feed-date {
+            font-style: italic;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+        
+        .no-data h3 {
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        .pagination .btn {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        
+        .pagination .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(31, 38, 135, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .controls-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .feed-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 RSS聚合器</h1>
+            <p>基於 Cloudflare Workers 的智能 RSS 聚合服務</p>
+        </div>
+        
+        <div class="stats" id="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalFeeds">-</div>
+                <div class="stat-label">RSS 源</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="totalItems">-</div>
+                <div class="stat-label">文章數量</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="lastUpdate">-</div>
+                <div class="stat-label">最後更新</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="controls-row">
+                <button class="btn btn-primary" onclick="loadFeeds()">🔄 重新載入</button>
+                <button class="btn btn-success" onclick="triggerCrawler()">🕷️ 觸發爬蟲</button>
+                <button class="btn btn-warning" onclick="showStatus()">📊 查看狀態</button>
+                
+                <div class="filter-group">
+                    <label for="sourceFilter">源過濾:</label>
+                    <select id="sourceFilter" onchange="applyFilters()">
+                        <option value="">全部</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="categoryFilter">分類:</label>
+                    <select id="categoryFilter" onchange="applyFilters()">
+                        <option value="">全部</option>
+                        <option value="tech">科技</option>
+                        <option value="general">一般</option>
+                    </select>
+                </div>
+                
+                <div class="status-indicator" id="statusIndicator">
+                    <span id="statusText">準備就緒</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在載入數據...</p>
+        </div>
+        
+        <div class="feed-container" id="feedContainer">
+            <div class="no-data">
+                <h3>🚀 歡迎使用 RSS聚合器</h3>
+                <p>點擊「重新載入」按鈕開始載入最新的 RSS 內容</p>
+            </div>
+        </div>
+        
+        <div class="pagination" id="pagination" style="display: none;">
+            <button class="btn btn-primary" id="prevBtn" onclick="previousPage()">上一頁</button>
+            <span id="pageInfo">第 1 頁</span>
+            <button class="btn btn-primary" id="nextBtn" onclick="nextPage()">下一頁</button>
+        </div>
+    </div>
+    
+    <script>
+        let currentPage = 0;
+        const pageSize = 20;
+        let currentFilters = { source: '', category: '' };
+        
+        // 載入 RSS 數據
+        async function loadFeeds() {
+            showLoading(true);
+            setStatus('正在載入...', 'loading');
+            
+            try {
+                const params = new URLSearchParams({
+                    limit: pageSize,
+                    offset: currentPage * pageSize,
+                    ...currentFilters
+                });
+                
+                const response = await fetch(`/api/feeds?${params}`);
+                const data = await response.json();
+                
+                displayFeeds(data.items || []);
+                updatePagination(data);
+                setStatus('載入完成', 'success');
+            } catch (error) {
+                console.error('載入失敗:', error);
+                setStatus('載入失敗', 'error');
+                showError('載入數據失敗，請稍後再試。');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // 載入統計數據
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/crawler/status');
+                const data = await response.json();
+                
+                document.getElementById('totalFeeds').textContent = data.status.totalSources;
+                document.getElementById('totalItems').textContent = data.status.cachedFeeds;
+                document.getElementById('lastUpdate').textContent = 
+                    data.status.lastUpdate ? new Date(data.status.lastUpdate).toLocaleString() : '未知';
+                
+                // 更新源過濾選項
+                updateSourceFilter(data.status.sources);
+            } catch (error) {
+                console.error('載入統計失敗:', error);
+            }
+        }
+        
+        // 更新源過濾選項
+        function updateSourceFilter(sources) {
+            const select = document.getElementById('sourceFilter');
+            select.innerHTML = '<option value="">全部</option>';
+            
+            sources.forEach(source => {
+                const option = document.createElement('option');
+                option.value = source.id;
+                option.textContent = source.name;
+                select.appendChild(option);
+            });
+        }
+        
+        // 顯示 RSS 項目
+        function displayFeeds(items) {
+            const container = document.getElementById('feedContainer');
+            
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data">
+                        <h3>📭 暫無數據</h3>
+                        <p>請等待爬蟲運行或手動觸發爬蟲。</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = items.map(item => `
+                <div class="feed-item">
+                    <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
+                    <div class="feed-description">${item.description}</div>
+                    <div class="feed-meta">
+                        <span class="feed-source">${item.sourceName}</span>
+                        <span class="feed-date">${new Date(item.publishedAt || item.pubDate).toLocaleString()}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 觸發爬蟲
+        async function triggerCrawler() {
+            setStatus('觸發爬蟲中...', 'loading');
+            
+            try {
+                const response = await fetch('/api/crawler/trigger', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                
+                const data = await response.json();
+                
+                if (data.message) {
+                    setStatus('爬蟲觸發成功', 'success');
+                    setTimeout(() => {
+                        loadFeeds();
+                        loadStats();
+                    }, 2000);
+                } else {
+                    setStatus('爬蟲觸發失敗', 'error');
+                }
+            } catch (error) {
+                console.error('觸發爬蟲失敗:', error);
+                setStatus('觸發爬蟲失敗', 'error');
+            }
+        }
+        
+        // 顯示狀態
+        async function showStatus() {
+            try {
+                const response = await fetch('/api/crawler/status');
+                const data = await response.json();
+                
+                const statusText = `
+                    總源數: ${data.status.totalSources}
+                    活躍源: ${data.status.activeSources}
+                    緩存數據: ${data.status.cachedFeeds}
+                    最後更新: ${data.status.lastUpdate ? new Date(data.status.lastUpdate).toLocaleString() : '未知'}
+                `;
+                
+                alert(statusText);
+            } catch (error) {
+                console.error('獲取狀態失敗:', error);
+                alert('獲取狀態失敗');
+            }
+        }
+        
+        // 應用過濾器
+        function applyFilters() {
+            currentFilters.source = document.getElementById('sourceFilter').value;
+            currentFilters.category = document.getElementById('categoryFilter').value;
+            currentPage = 0;
+            loadFeeds();
+        }
+        
+        // 分頁功能
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadFeeds();
+            }
+        }
+        
+        function nextPage() {
+            currentPage++;
+            loadFeeds();
+        }
+        
+        function updatePagination(data) {
+            const pagination = document.getElementById('pagination');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const pageInfo = document.getElementById('pageInfo');
+            
+            if (data.items && data.items.length > 0) {
+                pagination.style.display = 'flex';
+                prevBtn.disabled = currentPage === 0;
+                nextBtn.disabled = !data.hasMore;
+                pageInfo.textContent = `第 ${currentPage + 1} 頁`;
+            } else {
+                pagination.style.display = 'none';
+            }
+        }
+        
+        // 工具函數
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            loading.classList.toggle('active', show);
+        }
+        
+        function setStatus(text, type) {
+            const indicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            
+            indicator.className = `status-indicator status-${type}`;
+            statusText.textContent = text;
+        }
+        
+        function showError(message) {
+            alert(message);
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadFeeds();
+        });
+    </script>
+</body>
+</html> 

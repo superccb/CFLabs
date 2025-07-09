@@ -1,0 +1,30 @@
+name = "rss-aggregator"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+ENVIRONMENT = "development"
+
+# KV 存儲配置
+[[kv_namespaces]]
+binding = "RSS_CACHE"
+id = "rss_cache_namespace"
+preview_id = "rss_cache_preview"
+
+[[kv_namespaces]]
+binding = "RSS_SOURCES"
+id = "rss_sources_namespace"
+preview_id = "rss_sources_preview"
+
+# Cron 觸發器 - 每30分鐘執行一次爬蟲
+[triggers]
+crons = ["*/30 * * * *"]
+
+# 環境配置
+[env.production]
+name = "rss-aggregator"
+vars = { ENVIRONMENT = "production" }
+
+[env.development]
+name = "rss-aggregator-dev"
+vars = { ENVIRONMENT = "development" } 
