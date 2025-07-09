@@ -1,0 +1,21 @@
+name = "cloud-notepad"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+ENVIRONMENT = "development"
+
+# KV 存儲配置
+[[kv_namespaces]]
+binding = "NOTES"
+id = "notes_namespace"
+preview_id = "notes_preview"
+
+# 環境配置
+[env.production]
+name = "cloud-notepad"
+vars = { ENVIRONMENT = "production" }
+
+[env.development]
+name = "cloud-notepad-dev"
+vars = { ENVIRONMENT = "development" } 

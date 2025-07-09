@@ -17,6 +17,7 @@ CFLabs 是一個專門收集和實踐 Cloudflare 項目的 mono repo，旨在：
 CFLabs/
 ├── projects/                    # 所有 CF 項目代碼
 │   ├── rss-aggregator/         # RSS 聚合器項目
+│   ├── cloud-notepad/          # 雲筆記本項目
 │   └── ...                     # 更多項目陸續添加
 ├── docs/                       # 技術文檔和學習筆記
 ├── scripts/                    # 通用腳本
@@ -29,7 +30,7 @@ CFLabs/
 ### 🔄 RSS 聚合器
 > 基於 Cloudflare Workers 的智能 RSS 聚合服務
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/your-username/CFLabs/tree/main/projects/rss-aggregator)
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/superccb/CFLabs/tree/main/projects/rss-aggregator)
 
 **技術特性**:
 - ✨ **Workers**: 無服務器計算
@@ -45,6 +46,28 @@ CFLabs/
 - 實時狀態監控
 
 [📖 詳細文檔](./projects/rss-aggregator/README.md)
+
+---
+
+### 📝 雲筆記本
+> 基於 Cloudflare Workers + KV 的無服務器筆記應用
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/superccb/CFLabs/tree/main/projects/cloud-notepad)
+
+**技術特性**:
+- ✨ **Workers**: 無服務器計算
+- 📦 **KV Storage**: 筆記數據存儲
+- 🎨 **響應式設計**: 適配各種設備
+- 🔒 **安全存儲**: 加密哈希處理
+
+**功能亮點**:
+- 無需註冊登錄，打開即用
+- 自動保存筆記內容
+- 支持自定義筆記 URL
+- 美觀的毛玻璃界面設計
+- 實時保存狀態指示
+
+[📖 詳細文檔](./projects/cloud-notepad/README.md)
 
 ---
 
@@ -86,11 +109,11 @@ wrangler login
 
 ```bash
 # 克隆倉庫
-git clone https://github.com/your-username/CFLabs.git
+git clone https://github.com/superccb/CFLabs.git
 cd CFLabs
 
 # 進入具體項目目錄
-cd projects/rss-aggregator
+cd projects/rss-aggregator  # 或 projects/cloud-notepad
 
 # 安裝依賴
 npm install
@@ -103,7 +126,7 @@ npm run deploy
 
 ```bash
 # 進入項目目錄
-cd projects/rss-aggregator
+cd projects/rss-aggregator  # 或 projects/cloud-notepad
 
 # 啟動開發服務器
 npm run dev
@@ -170,8 +193,8 @@ chore: 構建或工具變更
 
 ## 🆘 獲取幫助
 
-- 🐛 [報告問題](https://github.com/your-username/CFLabs/issues)
-- 💡 [功能建議](https://github.com/your-username/CFLabs/issues/new?template=feature_request.md)
+- 🐛 [報告問題](https://github.com/superccb/CFLabs/issues)
+- 💡 [功能建議](https://github.com/superccb/CFLabs/issues/new?template=feature_request.md)
 - 📧 [聯繫我們](mailto:your-email@example.com)
 
 ---

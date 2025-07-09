@@ -1,0 +1,85 @@
+name: Deploy Cloud Notepad to Cloudflare Workers
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'projects/cloud-notepad/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'projects/cloud-notepad/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Cloudflare Workers
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: projects/cloud-notepad/package-lock.json
+          
+      - name: Install dependencies
+        run: |
+          cd projects/cloud-notepad
+          npm ci
+          
+      - name: Update wrangler.toml with secrets
+        run: |
+          cd projects/cloud-notepad
+          echo "Updating wrangler.toml with production settings..."
+          # 更新 wrangler.toml 中的 KV 命名空間 ID
+          if [[ -n "$SCN_KV_NAMESPACE_ID" ]]; then
+            sed -i "s/id = \"notes_namespace\"/id = \"$SCN_KV_NAMESPACE_ID\"/" wrangler.toml
+          fi
+          if [[ -n "$SCN_KV_PREVIEW_ID" ]]; then
+            sed -i "s/preview_id = \"notes_preview\"/preview_id = \"$SCN_KV_PREVIEW_ID\"/" wrangler.toml
+          fi
+        env:
+          SCN_KV_NAMESPACE_ID: ${{ secrets.SCN_KV_NAMESPACE_ID }}
+          SCN_KV_PREVIEW_ID: ${{ secrets.SCN_KV_PREVIEW_ID }}
+          
+      - name: Update source code with secrets
+        run: |
+          cd projects/cloud-notepad/src
+          echo "Updating source code with production secrets..."
+          # 替換源代碼中的 SALT 和 SECRET
+          sed -i "s/your-salt-here/$SCN_SALT/" index.js
+          sed -i "s/your-secret-here/$SCN_SECRET/" index.js
+        env:
+          SCN_SALT: ${{ secrets.SCN_SALT }}
+          SCN_SECRET: ${{ secrets.SCN_SECRET }}
+          
+      - name: Deploy to Cloudflare Workers
+        run: |
+          cd projects/cloud-notepad
+          npx wrangler deploy --env production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          
+      - name: Run health check
+        run: |
+          echo "Deployment completed successfully!"
+          echo "Your cloud notepad is now available at your Workers domain."
+          
+      - name: Create deployment summary
+        run: |
+          echo "## 🚀 部署成功！" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 雲筆記本已部署" >> $GITHUB_STEP_SUMMARY
+          echo "- **項目**: Cloud Notepad" >> $GITHUB_STEP_SUMMARY
+          echo "- **時間**: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "- **狀態**: ✅ 部署成功" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔧 使用方式" >> $GITHUB_STEP_SUMMARY
+          echo "1. 訪問根路徑會自動創建新筆記" >> $GITHUB_STEP_SUMMARY
+          echo "2. 訪問 /any-custom-name 創建自定義筆記" >> $GITHUB_STEP_SUMMARY
+          echo "3. 內容會自動保存到 Cloudflare KV" >> $GITHUB_STEP_SUMMARY 

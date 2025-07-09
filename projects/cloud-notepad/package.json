@@ -1,0 +1,30 @@
+{
+  "name": "cloud-notepad",
+  "version": "1.0.0",
+  "description": "無服務器雲筆記本 - 基於 Cloudflare Workers 和 KV 存儲",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "publish": "wrangler deploy --env production",
+    "kv:create": "wrangler kv:namespace create NOTES",
+    "kv:create:preview": "wrangler kv:namespace create NOTES --preview",
+    "setup": "npm run kv:create && npm run kv:create:preview"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "kv",
+    "notepad",
+    "serverless",
+    "notes"
+  ],
+  "author": "CFLabs",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+} 
