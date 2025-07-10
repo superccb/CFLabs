@@ -1,0 +1,44 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Mac
+.DS_Store
+
+# VSCode
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# dotenv
+.env
+.env.*
+
+# Cloudflare Wrangler
+wrangler.toml
+wrangler.*.toml
+wrangler.d1.*
+wrangler.log
+.wrangler/
+*.sqlite3
+
+# System
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+
+# Test/coverage
+coverage/
+*.lcov
+
+# Misc
+*.local
+*.bak
+*.tmp 
