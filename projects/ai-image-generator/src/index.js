@@ -53,7 +53,7 @@ async function handleImageGeneration(request, env) {
   }
 
   // 檢查緩存
-  const cacheKey = `${model}_${resolution.width}x${resolution.height}_${btoa(prompt)}`;
+  const cacheKey = `${model}_${resolution.width}x${resolution.height}_${toBase64(prompt)}`;
   const cached = await env.IMAGE_CACHE.get(cacheKey);
   if (cached) {
     return new Response(JSON.stringify({ 
@@ -367,4 +367,9 @@ function handleCORS() {
       'Access-Control-Allow-Headers': 'Content-Type'
     }
   });
+} 
+
+// 新增支援中文的 base64 編碼函數
+function toBase64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
 } 

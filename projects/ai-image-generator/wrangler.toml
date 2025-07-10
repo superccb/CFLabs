@@ -6,7 +6,7 @@ compatibility_date = "2024-01-01"
 ENVIRONMENT = "development"
 
 # AI 綁定 - Cloudflare Workers AI
-[[ai]]
+[ai]
 binding = "AI"
 
 # KV 存儲配置 - 用於緩存生成的圖像
