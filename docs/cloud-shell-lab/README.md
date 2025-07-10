@@ -1,7 +1,8 @@
 # 云端 Docker Mock 监控 Lab 快速上手（Quick Start）
 
 本实验适用于 Google Cloud Shell、Linux、Mac、Windows，帮助你用最简单的方式体验“安全只读的 Docker 监控服务”，并通过 cloudflared 让外部可访问。
-
+配合 gloud 命令行，可以随时启动测试应用，不用了就关闭，临时需要一个应用很方便，走 cf 或是 google 本身测试 domain 都很方便
+google 测试 domain 改 port 就随时可用
 ---
 
 ## 1. 环境准备
