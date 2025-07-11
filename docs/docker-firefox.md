@@ -1,32 +1,218 @@
-# 在 VPS 上使用 Docker 遠端啟動 Firefox 瀏覽器（含 Web 圖形介面）
+# 🦊 Firefox Remote Desktop via Docker (with NoVNC)
 
-本指南適用於希望在 VPS（雲端主機）上，通過 Docker 快速部署 Firefox 圖形瀏覽器，並能以 VNC/noVNC（Web）方式遠端訪問的用戶。適合開發測試、臨時瀏覽、雲端桌面等場景。
+This guide provides two deployment approaches:
 
----
+- ✅ **Version A: AMD GPU Support (with VA-API acceleration)**
+- ✅ **Version B: Standard Version (no GPU support)**
 
-## 目錄
-
-1. [推薦方案：Docker + Firefox + VNC/noVNC](#推薦方案docker--firefox--x11--vnc--novncweb遠端訪問)
-2. [直接使用官方鏡像（最簡單）](#1-直接使用官方鏡像推薦)
-3. [自定義 Dockerfile（進階用戶）](#2-自定義-dockerfile如你想要自己定制)
-4. [啟用 Web 瀏覽訪問（noVNC）](#3-開啟-web-瀏覽訪問加上-novnc)
-5. [安全提醒與加固建議](#安全提醒)
-6. [常見問題 FAQ](#常見問題-faq)
-7. [測試與清理命令](#🧪-測試地址例)
-8. [方案對比總結](#✅-總結)
-9. [版本與更新資訊](#版本與更新資訊)
+After deployment, you can remotely operate Firefox's graphical interface through a browser, suitable for VPS and cloud hosting environments.
 
 ---
 
-## ✅ 推薦方案：Docker + Firefox + X11 + VNC + noVNC（Web遠端訪問）
+## 📁 File Structure
 
-推薦使用開源專案 `jlesage/firefox`，內建 Firefox + VNC/noVNC，開箱即用。
+The following three files should be placed in the same folder (e.g., `firefox-remote/`):
+
+```
+firefox-remote/
+├── Dockerfile
+├── startup.sh
+└── supervisord.conf
+```
 
 ---
 
-### 1. 直接使用官方鏡像（推薦）
+## 🔧 Version A: AMD GPU Support (Integrated Graphics)
 
-#### ✅ 快速啟動命令（無需 Dockerfile）：
+### Dockerfile
+
+```dockerfile
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    firefox \
+    fluxbox \
+    x11vnc \
+    xvfb \
+    wget \
+    git \
+    supervisor \
+    mesa-utils \
+    mesa-va-drivers \
+    vainfo \
+    libgl1-mesa-dri \
+    libvulkan1 \
+    vulkan-tools \
+    ttyd \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git clone https://github.com/novnc/noVNC.git /opt/novnc && \
+    git clone https://github.com/novnc/websockify /opt/novnc/utils/websockify && \
+    ln -s /opt/novnc/vnc.html /opt/novnc/index.html
+
+COPY startup.sh /opt/startup.sh
+RUN chmod +x /opt/startup.sh
+
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+EXPOSE 8080 5900 7681
+
+CMD ["/usr/bin/supervisord"]
+```
+
+### startup.sh
+
+```bash
+#!/bin/bash
+# Start Xvfb display server
+Xvfb :1 -screen 0 1280x800x24 &
+export DISPLAY=:1
+
+# Lightweight window manager
+fluxbox &
+
+# Display VA-API status (non-fatal errors can be ignored)
+vainfo || echo "VA-API check failed"
+
+# Start Firefox
+firefox &
+
+# Start VNC server
+x11vnc -display :1 -nopw -forever -shared -rfbport 5900 &
+
+# Start ttyd CLI Web Terminal (for persistent operations)
+ttyd -p 7681 bash &
+
+# Start noVNC, convert VNC to WebSocket
+/opt/novnc/utils/launch.sh --vnc localhost:5900 --listen 8080
+```
+
+### supervisord.conf
+
+```ini
+[supervisord]
+nodaemon=true
+
+[program:browser]
+command=/opt/startup.sh
+```
+
+### Launch Commands
+
+```bash
+docker build -t firefox-amd .
+docker run -d \
+  --device /dev/dri \
+  -v "$(pwd)":/workspace \
+  -p 8080:8080 \
+  -p 7681:7681 \
+  --name firefox-amd \
+  firefox-amd
+```
+
+---
+
+## ⚙️ Version B: Standard Version (No GPU / VA-API)
+
+### Differences
+
+* Remove GPU / VA-API package installation
+* `vainfo` can be omitted
+* No need for `--device /dev/dri` mount
+
+### Launch Commands
+
+```bash
+docker build -t firefox-lite .
+docker run -d \
+  -v "$(pwd)":/workspace \
+  -p 8080:8080 \
+  -p 7681:7681 \
+  --name firefox-lite \
+  firefox-lite
+```
+
+---
+
+## 🌐 Extended Features
+
+### ✅ 1. Enable Cloudflare Tunnel (Temporary Access)
+
+Install Cloudflare Tunnel ([Official Site](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/)):
+
+```bash
+curl -fsSL https://developers.cloudflare.com/cloudflare-one/static/downloads/cloudflared-linux-amd64.deb -o cf.deb
+sudo dpkg -i cf.deb
+```
+
+Start public URL (requires Cloudflare account login once):
+
+```bash
+cloudflared tunnel --url http://localhost:8080
+```
+
+Access example:
+
+```
+https://fancy-fox.trycloudflare.com
+```
+
+---
+
+### ✅ 2. Working Directory Persistence (Original Directory Mount)
+
+Docker startup already mounts:
+
+```bash
+-v "$(pwd)":/workspace
+```
+
+You can access and modify files in `/workspace`, or let Firefox save downloaded content.
+
+---
+
+### ✅ 3. Additional ttyd (Command Line Terminal)
+
+* `ttyd` is already started in the container
+* Can be accessed directly at:
+
+```
+http://<your-IP>:7681
+```
+
+> Recommended to use Cloudflare Tunnel to expose 7681 as well (or only expose 8080 + iframe terminal)
+
+---
+
+## 🔐 Security Recommendations
+
+| Item | Recommended Practice |
+|------|---------------------|
+| Avoid direct exposure of 8080 | Use Cloudflare Tunnel or NGINX Basic Auth |
+| Password protection | noVNC / ttyd default no password, should use Proxy encryption authentication |
+| HTTPS | Can use Cloudflare or NGINX Reverse Proxy for HTTPS |
+
+---
+
+## ✅ Firefox Acceleration Verification Method
+
+1. Open Firefox
+2. Enter `about:support`
+3. Check if the following information is enabled:
+
+| Item | Status |
+|------|--------|
+| Compositing | WebRender or OpenGL |
+| GPU Accelerated Windows | > 0 |
+| Video Acceleration Info | Contains VA-API if enabled |
+
+---
+
+## 🚀 Quick Start with Official Image (Recommended)
+
+### ✅ Quick Launch Command (No Dockerfile Required):
 
 ```bash
 docker run -d \
@@ -36,23 +222,23 @@ docker run -d \
   jlesage/firefox
 ```
 
-- **Web 訪問方式**：瀏覽器打開 `http://你的VPS-IP:5800` 即可看到 Firefox 圖形介面（noVNC）。
-- **端口說明**：5800（Web/noVNC），5900（VNC 客戶端，需額外開啟）。
-- **數據持久化**：Firefox 配置與資料將保存在 `/docker/appdata/firefox`，可自訂路徑。
-- **資源需求**：建議 VPS 至少 1GB 記憶體。
+- **Web Access**: Open `http://your-VPS-IP:5800` in browser to see Firefox graphical interface (noVNC).
+- **Port Description**: 5800 (Web/noVNC), 5900 (VNC client, needs additional opening).
+- **Data Persistence**: Firefox configuration and data will be saved in `/docker/appdata/firefox`, customizable path.
+- **Resource Requirements**: Recommend VPS with at least 1GB memory.
 
 ---
 
-### 2. 自定義 Dockerfile（如需進階自訂）
+## 🔧 Custom Dockerfile (For Advanced Customization)
 
-如需完全自訂環境，可參考以下 Dockerfile：
+If you need complete custom environment, refer to the following Dockerfile:
 
 ```dockerfile
 FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 安裝 Firefox 及必要元件
+# Install Firefox and necessary components
 RUN apt-get update && apt-get install -y \
     firefox \
     x11vnc \
@@ -62,12 +248,12 @@ RUN apt-get update && apt-get install -y \
     supervisor \
     && rm -rf /var/lib/apt/lists/*
 
-# 建立啟動腳本
+# Create startup script
 RUN mkdir -p /opt/scripts
 COPY startup.sh /opt/scripts/startup.sh
 RUN chmod +x /opt/scripts/startup.sh
 
-# Supervisor 設定
+# Supervisor configuration
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 EXPOSE 5900 6080
@@ -75,23 +261,23 @@ EXPOSE 5900 6080
 CMD ["/usr/bin/supervisord"]
 ```
 
-#### `startup.sh`（啟動 Firefox + VNC 腳本）
+#### `startup.sh` (Firefox + VNC Startup Script)
 
 ```bash
 #!/bin/bash
-# 啟動 Xvfb（虛擬 X server）
+# Start Xvfb (virtual X server)
 Xvfb :1 -screen 0 1024x768x16 &
 
-# 設定顯示變數
+# Set display variable
 export DISPLAY=:1
 
-# 啟動視窗管理器
+# Start window manager
 fluxbox &
 
-# 啟動 Firefox
+# Start Firefox
 firefox &
 
-# 啟動 VNC 伺服器
+# Start VNC server
 x11vnc -display :1 -forever -nopw -shared &
 ```
 
@@ -105,71 +291,56 @@ nodaemon=true
 command=/opt/scripts/startup.sh
 ```
 
-#### 構建與運行自定義鏡像
+#### Build and Run Custom Image
 
 ```bash
-# 構建鏡像
+# Build image
 sudo docker build -t myfirefox .
 
-# 運行容器
+# Run container
 sudo docker run -d --name=firefox -p 5900:5900 myfirefox
 ```
 
 ---
 
-### 3. 開啟 Web 瀏覽訪問（加上 noVNC）
+## 🔐 Security Reminders
 
-如需直接用瀏覽器訪問（無需 VNC 客戶端），可加裝 noVNC：
-
-```bash
-# 安裝 noVNC
-RUN git clone https://github.com/novnc/noVNC.git /opt/novnc \
- && git clone https://github.com/novnc/websockify /opt/novnc/utils/websockify
-
-# 啟動腳本加一行
-/opt/novnc/utils/launch.sh --vnc localhost:5900 &
-```
+- **Never directly expose ports 5800/5900 to public network**, recommend using Cloudflare Tunnel, SSH tunnel, or setting passwords.
+- Default no authentication, please strengthen firewall rules, Nginx Basic Auth, or Cloudflare Zero Trust.
+- Refer to [noVNC official documentation](https://novnc.com/info.html) for password setup.
 
 ---
 
-## 🔐 安全提醒
+## FAQ
 
-- **切勿直接暴露 5800/5900 端口於公網**，建議使用 Cloudflare Tunnel、SSH 隧道或設置密碼。
-- 預設無認證，請加強防火牆規則、Nginx Basic Auth 或 Cloudflare Zero Trust。
-- 可參考 [noVNC 官方文檔](https://novnc.com/info.html) 設置密碼。
+**Q1: Cannot access port 5800 after startup?**
+- Check if VPS firewall has opened port 5800.
+- Check if container is running normally: `docker ps`.
 
----
+**Q2: Firefox starts slowly or crashes?**
+- Check if VPS memory is sufficient (recommend 1GB+).
+- Try restarting the container.
 
-## 常見問題 FAQ
+**Q3: How to set VNC/noVNC password?**
+- Can add `-passwd yourpassword` parameter in startup script.
+- Refer to noVNC/x11vnc official documentation.
 
-**Q1：啟動後無法訪問 5800 端口？**
-- 檢查 VPS 防火牆是否開放 5800 端口。
-- 檢查容器是否正常運行：`docker ps`。
-
-**Q2：Firefox 啟動很慢或閃退？**
-- 檢查 VPS 記憶體是否足夠（建議 1GB+）。
-- 嘗試重啟容器。
-
-**Q3：如何設置 VNC/noVNC 密碼？**
-- 可在啟動腳本中加入 `-passwd yourpassword` 參數。
-- 參考 noVNC/x11vnc 官方文檔。
-
-**Q4：如何自訂數據保存路徑？**
-- 修改 `-v /docker/appdata/firefox:/config:rw` 中左側路徑即可。
+**Q4: How to customize data save path?**
+- Modify the left path in `-v /docker/appdata/firefox:/config:rw`.
 
 ---
 
-## 🧪 測試地址（例）
+## 🧪 Test Address (Example)
 
-假設你的 VPS IP 為 `1.2.3.4`，執行：
+Assuming your VPS IP is `1.2.3.4`, execute:
 
 ```bash
 docker run -d -p 5800:5800 jlesage/firefox
 ```
 
-然後瀏覽器訪問 `http://1.2.3.4:5800`。
+Then access `http://1.2.3.4:5800` in browser.
 
-### 停止並清理容器
+### Stop and Clean Up Container
 
 ```bash
 docker stop firefox && docker rm firefox
@@ -177,18 +348,18 @@ docker stop firefox && docker rm firefox
 
 ---
 
-## ✅ 總結
+## ✅ Summary
 
-| 方式                              | 是否推薦  | 是否支援 Web 訪問 | 難度   | 備註           |
-| --------------------------------- | ------- | -------------- | ------ | -------------- |
-| 用 jlesage/firefox                | ✅ 推薦  | ✅（5800 端口）  | 最簡單 | 開箱即用        |
-| 自訂 Dockerfile + VNC/noVNC       | 適合進階 | ✅ 可加 noVNC    | 中等   | 可高度自訂      |
-| ttyd + CLI 瀏覽器（w3m/lynx）     | ❌ 不推薦 | ❌ 無 GUI        | 最輕量 | 僅文字瀏覽      |
+| Method | Recommended | Web Access Support | Difficulty | Notes |
+|--------|-------------|-------------------|------------|-------|
+| Use jlesage/firefox | ✅ Recommended | ✅ (port 5800) | Simplest | Ready to use |
+| Custom Dockerfile + VNC/noVNC | For advanced users | ✅ Can add noVNC | Medium | Highly customizable |
+| ttyd + CLI browser (w3m/lynx) | ❌ Not recommended | ❌ No GUI | Lightest | Text-only browsing |
 
 ---
 
-## 版本與更新資訊
+## Version and Update Information
 
-- 適用鏡像版本：`jlesage/firefox:latest`（測試於 2024-06）
-- 最後更新時間：2024-06
+- Compatible image version: `jlesage/firefox:latest` (tested 2024-06)
+- Last update: 2024-06
 

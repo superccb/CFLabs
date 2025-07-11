@@ -1,34 +1,34 @@
 ---
 
-## 🧩 重點總覽
+## 🧩 Key Overview
 
-### 🛠️ Git SSH & 使用者設定
+### 🛠️ Git SSH & User Configuration
 
-1. **SSH 設定檔**
+1. **SSH Configuration File**
 
    ```ssh
    Host github-superccb
-     User 你的用戶
+     User your-username
      Hostname github.com
      PreferredAuthentications publickey
-     IdentityFile /Users/你的用戶/.ssh/id_1314m1314
+     IdentityFile /Users/your-username/.ssh/id_1314m1314
      IdentitiesOnly yes
    ```
 
-2. **修改 Git 遠端為使用 SSH Alias**
+2. **Modify Git Remote to Use SSH Alias**
 
    ```bash
    git remote set-url origin git@github-superccb:superccb/CFLabs.git
    ```
 
-3. **設定該專案的 Git 使用者名稱與 Email**
+3. **Set Git Username and Email for This Project**
 
    ```bash
    git config user.name "Your Full Name"
    git config user.email "superccb@users.noreply.github.com"
    ```
 
-4. **推送前測試 SSH 連線**
+4. **Test SSH Connection Before Push**
 
    ```bash
    ssh -T git@github-superccb
@@ -36,11 +36,11 @@
 
 ---
 
-## 🗂️ GitHub Issue Template 作為 CMS
+## 🗂️ GitHub Issue Template as CMS
 
-### 📝 放置位置
+### 📝 Placement Location
 
-將以下檔案放入：
+Place the following files in:
 
 ```
 CFLabs/.github/ISSUE_TEMPLATE/
@@ -48,7 +48,7 @@ CFLabs/.github/ISSUE_TEMPLATE/
 
 ---
 
-### 📔 `diary_entry.md`：日記＋5R 反思模板
+### 📔 `diary_entry.md`: Diary + 5R Reflection Template
 
 ```md
 ---
@@ -61,7 +61,7 @@ assignees: ''
 
 ## 📚 Background
 
-_Provide context or background of today’s focus (project status, mindset, environment, etc.)_
+_Provide context or background of today's focus (project status, mindset, environment, etc.)_
 
 ---
 
@@ -95,7 +95,7 @@ _What's the main takeaway or reflection from today?_
 
 ---
 
-### 📝 `quick_capture.md`：快寫快記筆記模板
+### 📝 `quick_capture.md`: Quick Capture Note Template
 
 ```md
 ---
@@ -106,24 +106,24 @@ labels: [quick, note, raw]
 assignees: ''
 ---
 
-# 写标题
+# Write Title
 
-## 写正文
+## Write Content
 
-### ❗ 想到的事，不论是什么，先写下来（这一条用红色标注强调）
+### ❗ Whatever comes to mind, write it down immediately (this line highlighted in red for emphasis)
 
-笔记写在A4纸的背面  
-每天做10页笔记  
-每页1分钟，一想到就立刻写下来  
-不能用笔记本、日记本、Word 的原因  
-笔记控制在 1 分钟内，在任何地方都可以写  
+Write notes on the back of A4 paper  
+Write 10 pages of notes daily  
+1 minute per page, write immediately when you think of something  
+Reasons not to use notebooks, diaries, or Word  
+Keep notes within 1 minute, can write anywhere  
 
-💡 _情绪要再三思考后再写入笔记_
+💡 _Consider emotions carefully before writing them in notes_
 ```
 
 ---
 
-### ☂ `umbrella_thinking.md`：「空雨傘」決策分析模板
+### ☂ `umbrella_thinking.md`: "Empty Umbrella" Decision Analysis Template
 
 ```md
 ---
@@ -134,29 +134,29 @@ labels: [thinking, reflection, decision]
 assignees: ''
 ---
 
-## ☁ 空（現狀）
+## ☁ Empty (Current Situation)
 
-觀察現狀：描述你看到的情況、數據或問題  
-> 例：天氣陰沉，地面潮濕
-
----
-
-## 🌧 雨（分析）
-
-根據現象進行推導與預測：  
-> 例：可能剛下過雨，也可能即將下雨
+Observe the current situation: describe what you see, data, or problems  
+> Example: Weather is cloudy, ground is wet
 
 ---
 
-## ☂ 傘（行動）
+## 🌧 Rain (Analysis)
 
-根據分析制定對應行動計畫：  
-> 例：準備帶傘，避免被淋濕
+Based on phenomena, derive and predict:  
+> Example: It may have just rained, or it's about to rain
+
+---
+
+## ☂ Umbrella (Action)
+
+Based on analysis, formulate corresponding action plans:  
+> Example: Prepare to bring an umbrella to avoid getting wet
 ```
 
 ---
 
-## 🚀 推送後測試
+## 🚀 Test After Push
 
 ```bash
 git add .github/ISSUE_TEMPLATE/
@@ -164,7 +164,7 @@ git commit -m "Add markdown-based issue templates for diary and note-taking"
 git push
 ```
 
-前往 GitHub 頁面測試模板是否正常顯示：
+Go to GitHub page to test if templates display correctly:
 
 🔗 `https://github.com/superccb/CFLabs/issues/new/choose`
 

@@ -1,304 +1,499 @@
-# Cloudflare 服務對比與選擇指南
+# Cloudflare Service Comparison and Selection Guide
 
-## 數據存儲服務對比
+## Data Storage Service Comparison
 
-| 服務 | 類型 | 一致性 | 延遲 | 容量限制 | 適用場景 | 成本 |
-|------|------|--------|------|----------|----------|------|
-| **D1** | SQL 數據庫 | 強一致性 | 低 | 10GB | 關係型數據、事務 | 按查詢計費 |
-| **R2** | 對象存儲 | 最終一致性 | 低 | 無限制 | 文件存儲、CDN | 按存儲計費 |
-| **KV** | 鍵值存儲 | 最終一致性 | 極低 | 25GB | 配置、緩存 | 按讀寫計費 |
-| **Durable Objects** | 狀態管理 | 強一致性 | 低 | 128MB/實例 | 實時協作、會話 | 按實例計費 |
+| Service | Type | Consistency | Latency | Capacity Limit | Use Cases | Cost |
+|---------|------|-------------|---------|----------------|-----------|------|
+| **D1** | SQL Database | Strong Consistency | Low | 10GB | Relational data, transactions | Per query billing |
+| **R2** | Object Storage | Eventual Consistency | Low | Unlimited | File storage, CDN | Per storage billing |
+| **KV** | Key-Value Storage | Eventual Consistency | Very Low | 25GB | Configuration, caching | Per read/write billing |
+| **Durable Objects** | State Management | Strong Consistency | Low | 128MB/instance | Real-time collaboration, sessions | Per instance billing |
 
-### 數據存儲選擇建議
+### Data Storage Selection Recommendations
 
-#### 選擇 D1 當你需要：
-- 複雜查詢和關聯
-- 事務支持
-- 數據完整性
-- 結構化數據
+#### Choose D1 when you need:
+- Complex queries and relationships
+- Transaction support
+- Data integrity
+- Structured data
 
-#### 選擇 R2 當你需要：
-- 大文件存儲
-- 全球 CDN 分發
-- S3 兼容 API
-- 無出口費用
+#### Choose R2 when you need:
+- Large file storage
+- Global CDN distribution
+- S3-compatible API
+- No egress fees
 
-#### 選擇 KV 當你需要：
-- 簡單的鍵值查詢
-- 極低延遲
-- 配置存儲
-- 會話數據
+#### Choose KV when you need:
+- Simple key-value queries
+- Extremely low latency
+- Configuration storage
+- Session data
 
-#### 選擇 Durable Objects 當你需要：
-- 強一致性狀態
-- 實時協作
-- 唯一性保證
-- 複雜狀態管理
-
----
-
-## AI 服務對比
-
-| 服務 | 模型類型 | 延遲 | 成本 | 功能 | 適用場景 |
-|------|----------|------|------|------|----------|
-| **Workers AI** | 多模態 | 低 | 按使用計費 | 文本、圖像、語音 | 通用 AI 應用 |
-| **AI Agents SDK** | Agent 框架 | 低 | 按使用計費 | 多 Agent、協作 | 智能應用 |
-
-### AI 服務選擇建議
-
-#### 選擇 Workers AI 當你需要：
-- 單次 AI 推理
-- 多模態處理
-- 簡單的 AI 整合
-- 成本敏感應用
-
-#### 選擇 AI Agents SDK 當你需要：
-- 複雜的 AI 工作流
-- 多 Agent 協作
-- 持久化對話
-- 人機協作
+#### Choose Durable Objects when you need:
+- Strong consistency state
+- Real-time collaboration
+- Uniqueness guarantees
+- Complex state management
 
 ---
 
-## 消息服務對比
+## AI Service Comparison
 
-| 服務 | 模式 | 可靠性 | 延遲 | 批量處理 | 適用場景 |
-|------|------|--------|------|----------|----------|
-| **Queues** | 點對點 | 高 | 低 | 支持 | 異步任務 |
-| **Pub/Sub** | 發布訂閱 | 中 | 極低 | 不支持 | 實時通知 |
+| Service | Model Type | Latency | Cost | Features | Use Cases |
+|---------|------------|---------|------|----------|-----------|
+| **Workers AI** | Multimodal | Low | Per usage billing | Text, image, audio | General AI applications |
+| **AI Agents SDK** | Agent framework | Low | Per usage billing | Multi-agent, collaboration | Intelligent applications |
 
-### 消息服務選擇建議
+### AI Service Selection Recommendations
 
-#### 選擇 Queues 當你需要：
-- 可靠的消息傳遞
-- 批量處理
-- 任務隊列
-- 重試機制
+#### Choose Workers AI when you need:
+- Single AI inference
+- Multimodal processing
+- Simple AI integration
+- Cost-sensitive applications
 
-#### 選擇 Pub/Sub 當你需要：
-- 實時通知
-- 多訂閱者
-- 低延遲
-- 事件驅動架構
-
----
-
-## 運行時對比
-
-| 服務 | 語言支持 | 冷啟動 | 記憶體 | CPU 時間 | 適用場景 |
-|------|----------|--------|--------|----------|----------|
-| **Workers** | JS/TS/Rust/Python | <1ms | 128MB | 5分鐘 | 輕量級邏輯 |
-| **Containers** | 任何語言 | 較慢 | 1-4GB | 無限制 | 重量級應用 |
-
-### 運行時選擇建議
-
-#### 選擇 Workers 當你需要：
-- 快速響應
-- 簡單邏輯
-- 成本敏感
-- 全球分佈
-
-#### 選擇 Containers 當你需要：
-- 複雜計算
-- 特定運行環境
-- 長時間運行
-- 現有容器化應用
+#### Choose AI Agents SDK when you need:
+- Complex AI workflows
+- Multi-agent collaboration
+- Persistent conversations
+- Human-machine collaboration
 
 ---
 
-## 開發工具對比
+## Messaging Service Comparison
 
-| 工具 | 用途 | 學習曲線 | 功能 | 適用場景 |
-|------|------|----------|------|----------|
-| **Wrangler CLI** | 開發部署 | 低 | 完整 | 所有項目 |
-| **Vite Plugin** | 構建優化 | 中 | 構建 | 前端項目 |
+| Service | Pattern | Reliability | Latency | Batch Processing | Use Cases |
+|---------|---------|-------------|---------|------------------|-----------|
+| **Queues** | Point-to-point | High | Low | Supported | Asynchronous tasks |
+| **Pub/Sub** | Publish-subscribe | Medium | Very Low | Not supported | Real-time notifications |
+
+### Messaging Service Selection Recommendations
+
+#### Choose Queues when you need:
+- Reliable message delivery
+- Batch processing
+- Task queues
+- Retry mechanisms
+
+#### Choose Pub/Sub when you need:
+- Real-time notifications
+- Multiple subscribers
+- Low latency
+- Event-driven architecture
 
 ---
 
-## 常見應用架構模式
+## Runtime Comparison
 
-### 1. 簡單 API 服務
+| Service | Language Support | Cold Start | Memory | CPU Time | Use Cases |
+|---------|------------------|------------|--------|----------|-----------|
+| **Workers** | JS/TS/Rust/Python | <1ms | 128MB | 5 minutes | Lightweight logic |
+| **Containers** | Any language | Slower | 1-4GB | Unlimited | Heavy applications |
+
+### Runtime Selection Recommendations
+
+#### Choose Workers when you need:
+- Fast response
+- Simple logic
+- Cost sensitivity
+- Global distribution
+
+#### Choose Containers when you need:
+- Complex computations
+- Specific runtime environments
+- Long-running processes
+- Existing containerized applications
+
+---
+
+## Development Tool Comparison
+
+| Tool | Purpose | Learning Curve | Features | Use Cases |
+|------|---------|----------------|----------|-----------|
+| **Wrangler CLI** | Development deployment | Low | Complete | All projects |
+| **Vite Plugin** | Build optimization | Medium | Build | Frontend projects |
+
+---
+
+## Common Application Architecture Patterns
+
+### 1. Simple API Service
 ```
 Workers + D1 + KV
-├── Workers: API 邏輯
-├── D1: 數據存儲
-└── KV: 配置和緩存
+├── Workers: API logic
+├── D1: Data storage
+└── KV: Configuration and caching
 ```
 
-### 2. 文件處理服務
+### 2. File Processing Service
 ```
 Workers + R2 + Queues
-├── Workers: 處理邏輯
-├── R2: 文件存儲
-└── Queues: 異步處理
+├── Workers: Processing logic
+├── R2: File storage
+└── Queues: Asynchronous processing
 ```
 
-### 3. 實時協作應用
+### 3. Real-time Collaboration Application
 ```
 Workers + Durable Objects + Pub/Sub
-├── Workers: WebSocket 處理
-├── Durable Objects: 狀態管理
-└── Pub/Sub: 實時通知
+├── Workers: WebSocket handling
+├── Durable Objects: State management
+└── Pub/Sub: Real-time notifications
 ```
 
-### 4. AI 驅動應用
+### 4. AI-driven Application
 ```
 Workers + Workers AI + D1
-├── Workers: 業務邏輯
-├── Workers AI: AI 推理
-└── D1: 數據存儲
+├── Workers: Business logic
+├── Workers AI: AI inference
+└── D1: Data storage
 ```
 
-### 5. 全棧應用
+### 5. Full-stack Application
 ```
 Workers + D1 + R2 + KV
-├── Workers: 前後端邏輯
-├── D1: 用戶數據
-├── R2: 靜態資源
-└── KV: 會話和配置
+├── Workers: Frontend and backend logic
+├── D1: User data
+├── R2: Static assets
+└── KV: Sessions and configuration
 ```
 
 ---
 
-## 成本優化建議
+## Cost Optimization Recommendations
 
-### 數據存儲成本優化
-- **D1**: 使用索引優化查詢
-- **R2**: 利用 CDN 減少傳輸
-- **KV**: 批量操作減少請求
-- **Durable Objects**: 合理設計實例數量
+### Data Storage Cost Optimization
+- **D1**: Use indexes to optimize queries
+- **R2**: Leverage CDN to reduce transmission
+- **KV**: Batch operations to reduce requests
+- **Durable Objects**: Reasonable instance design
 
-### AI 成本優化
-- 使用緩存避免重複推理
-- 選擇合適的模型大小
-- 批量處理請求
-- 利用串流減少等待時間
+### AI Cost Optimization
+- Use caching to avoid repeated inference
+- Choose appropriate model sizes
+- Batch process requests
+- Use streaming to reduce wait times
 
-### 計算成本優化
-- 使用 Workers 處理輕量級任務
-- 合理使用 Containers
-- 優化代碼減少執行時間
-- 利用緩存減少重複計算
+### Compute Cost Optimization
+- Use Workers for lightweight tasks
+- Reasonable use of Containers
+- Optimize code to reduce execution time
+- Use caching to reduce repeated computations
 
 ---
 
-## 性能最佳實踐
+## Performance Best Practices
 
-### 數據庫優化
+### Database Optimization
 ```sql
--- 使用索引
+-- Use indexes
 CREATE INDEX idx_user_email ON users(email);
 
--- 批量操作
+-- Batch operations
 INSERT INTO users (name, email) VALUES 
   ('John', 'john@example.com'),
   ('Jane', 'jane@example.com');
 
--- 預準備語句
+-- Prepared statements
 const stmt = env.DB.prepare("SELECT * FROM users WHERE id = ?");
 ```
 
-### 緩存策略
+### R2 Optimization
 ```javascript
-// 多層緩存
-const cacheKey = `user:${userId}`;
-let user = await env.KV.get(cacheKey);
+// Use streaming for large files
+const stream = await env.MY_BUCKET.get('large-file.mp4');
+return new Response(stream.body, {
+  headers: { 'content-type': 'video/mp4' }
+});
 
-if (!user) {
-  user = await env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(userId).first();
-  await env.KV.put(cacheKey, JSON.stringify(user), { expirationTtl: 3600 });
-}
+// Use presigned URLs for direct uploads
+const url = await env.MY_BUCKET.createMultipartUpload('file.txt');
 ```
 
-### 並發處理
+### KV Optimization
 ```javascript
-// 並發請求
-const [user, posts] = await Promise.all([
-  env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(userId).first(),
-  env.DB.prepare("SELECT * FROM posts WHERE user_id = ?").bind(userId).all()
-]);
+// Batch operations
+await env.MY_KV.put('key1', 'value1');
+await env.MY_KV.put('key2', 'value2');
+
+// Use getMany for multiple keys
+const values = await env.MY_KV.getMany(['key1', 'key2', 'key3']);
 ```
 
----
-
-## 安全最佳實踐
-
-### 身份驗證
+### Workers Optimization
 ```javascript
-// 使用 Access 進行身份驗證
+// Use streaming responses
 export default {
   async fetch(request, env) {
-    const user = await env.AUTH.getUserInfo(request);
-    if (!user) {
-      return new Response('Unauthorized', { status: 401 });
-    }
-    // 處理請求
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue('Hello ');
+        controller.enqueue('World!');
+        controller.close();
+      }
+    });
+    
+    return new Response(stream);
   }
 };
 ```
 
-### 輸入驗證
+---
+
+## Security Best Practices
+
+### Authentication and Authorization
 ```javascript
-// 驗證輸入
-function validateUser(userData) {
-  if (!userData.email || !userData.email.includes('@')) {
-    throw new Error('Invalid email');
+// JWT token validation
+function validateToken(token) {
+  try {
+    return jwt.verify(token, env.JWT_SECRET);
+  } catch (error) {
+    return null;
   }
-  if (!userData.name || userData.name.length < 2) {
-    throw new Error('Invalid name');
-  }
+}
+
+// Role-based access control
+function checkPermission(user, resource) {
+  return user.roles.includes('admin') || 
+         user.permissions.includes(resource);
 }
 ```
 
-### 環境變量管理
+### Data Validation
 ```javascript
-// 使用密鑰管理
-const apiKey = env.API_KEY;
-if (!apiKey) {
-  throw new Error('API key not configured');
+// Input validation
+function validateUserInput(data) {
+  const schema = {
+    name: { type: 'string', minLength: 1, maxLength: 100 },
+    email: { type: 'string', format: 'email' },
+    age: { type: 'number', minimum: 0, maximum: 150 }
+  };
+  
+  return validate(data, schema);
+}
+```
+
+### Rate Limiting
+```javascript
+// Implement rate limiting
+async function rateLimit(request, env) {
+  const ip = request.headers.get('CF-Connecting-IP');
+  const key = `rate_limit:${ip}`;
+  
+  const current = await env.KV.get(key) || 0;
+  if (current > 100) {
+    return new Response('Rate limit exceeded', { status: 429 });
+  }
+  
+  await env.KV.put(key, current + 1, { expirationTtl: 60 });
 }
 ```
 
 ---
 
-## 監控和調試
+## Monitoring and Observability
 
-### 日誌記錄
+### Logging
 ```javascript
-// 結構化日誌
-console.log('API Request', {
-  method: request.method,
-  url: request.url,
-  timestamp: new Date().toISOString(),
-  userAgent: request.headers.get('User-Agent')
+// Structured logging
+function log(level, message, data = {}) {
+  console.log(JSON.stringify({
+    timestamp: new Date().toISOString(),
+    level,
+    message,
+    ...data
+  }));
+}
+
+// Usage
+log('info', 'User created', { userId: 123, email: 'user@example.com' });
+```
+
+### Metrics Collection
+```javascript
+// Custom metrics
+export default {
+  async fetch(request, env) {
+    const start = Date.now();
+    
+    // Your logic here
+    
+    const duration = Date.now() - start;
+    env.ANALYTICS.writeDataPoint({
+      blobs: ['api_request'],
+      doubles: [duration],
+      indexes: ['endpoint']
+    });
+    
+    return response;
+  }
+};
+```
+
+### Error Handling
+```javascript
+// Global error handler
+export default {
+  async fetch(request, env) {
+    try {
+      return await handleRequest(request, env);
+    } catch (error) {
+      console.error('Unhandled error:', error);
+      
+      return new Response('Internal Server Error', {
+        status: 500,
+        headers: { 'content-type': 'text/plain' }
+      });
+    }
+  }
+};
+```
+
+---
+
+## Development Workflow
+
+### Local Development
+```bash
+# Start local development server
+wrangler dev
+
+# Test with different environments
+wrangler dev --env staging
+wrangler dev --env production
+
+# Debug with breakpoints
+wrangler dev --inspect
+```
+
+### Testing
+```javascript
+// Unit tests
+import { describe, it, expect } from 'vitest';
+import { handleRequest } from './worker';
+
+describe('Worker', () => {
+  it('should handle GET request', async () => {
+    const request = new Request('http://localhost/');
+    const response = await handleRequest(request, {});
+    
+    expect(response.status).toBe(200);
+  });
 });
 ```
 
-### 錯誤追蹤
-```javascript
-// 錯誤處理
-try {
-  // 業務邏輯
-} catch (error) {
-  console.error('Error details:', {
-    message: error.message,
-    stack: error.stack,
-    timestamp: new Date().toISOString()
-  });
-  throw error;
-}
-```
+### Deployment
+```bash
+# Deploy to staging
+wrangler deploy --env staging
 
-### 性能監控
-```javascript
-// 性能測量
-const startTime = Date.now();
-// 執行操作
-const duration = Date.now() - startTime;
-console.log(`Operation took ${duration}ms`);
+# Deploy to production
+wrangler deploy --env production
+
+# Rollback to previous version
+wrangler rollback --env production
 ```
 
 ---
 
-*最後更新: 2025-01-06*  
-*文檔維護: 開發團隊* 
+## Migration Strategies
+
+### From Traditional Servers
+1. **Identify stateless functions** that can be moved to Workers
+2. **Use D1** to replace traditional databases
+3. **Migrate file storage** to R2
+4. **Implement gradual migration** with traffic splitting
+
+### From Other Serverless Platforms
+1. **Map services** to equivalent Cloudflare services
+2. **Adapt environment variables** and configurations
+3. **Update deployment scripts** to use Wrangler
+4. **Test thoroughly** in staging environment
+
+### From Monolithic Applications
+1. **Break down into microservices** using Workers
+2. **Use Durable Objects** for state management
+3. **Implement API Gateway** patterns
+4. **Gradual migration** with feature flags
+
+---
+
+## Troubleshooting Common Issues
+
+### Cold Start Performance
+```javascript
+// Optimize cold starts
+export default {
+  async fetch(request, env) {
+    // Pre-warm connections
+    await env.DB.prepare('SELECT 1').run();
+    
+    // Your logic here
+  }
+};
+```
+
+### Memory Usage
+```javascript
+// Monitor memory usage
+export default {
+  async fetch(request, env) {
+    const startMemory = performance.memory?.usedJSHeapSize || 0;
+    
+    // Your logic here
+    
+    const endMemory = performance.memory?.usedJSHeapSize || 0;
+    console.log(`Memory used: ${endMemory - startMemory} bytes`);
+  }
+};
+```
+
+### Database Connection Issues
+```javascript
+// Handle database connection errors
+async function queryDatabase(env, sql, params = []) {
+  try {
+    return await env.DB.prepare(sql).bind(...params).all();
+  } catch (error) {
+    console.error('Database error:', error);
+    throw new Error('Database operation failed');
+  }
+}
+```
+
+---
+
+## Future Considerations
+
+### Scalability Planning
+- **Design for horizontal scaling** from the start
+- **Use appropriate data partitioning** strategies
+- **Plan for global distribution** requirements
+- **Consider cost implications** of scaling
+
+### Technology Evolution
+- **Stay updated** with Cloudflare's latest features
+- **Evaluate new services** as they become available
+- **Plan migration paths** for deprecated features
+- **Contribute to the community** and share learnings
+
+### Business Continuity
+- **Implement disaster recovery** procedures
+- **Set up monitoring and alerting** systems
+- **Document operational procedures** thoroughly
+- **Regular backup and testing** of critical systems
+
+---
+
+## Conclusion
+
+This guide provides a comprehensive comparison of Cloudflare's serverless services to help you make informed decisions about your application architecture. Remember to:
+
+- **Start simple** and add complexity as needed
+- **Test thoroughly** in staging environments
+- **Monitor performance** and costs continuously
+- **Stay updated** with best practices and new features
+- **Share knowledge** with the community
+
+For more detailed information about specific services, refer to the individual service documentation and the [Cloudflare Workers documentation](https://developers.cloudflare.com/workers/). 

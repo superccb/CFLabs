@@ -1,114 +1,331 @@
-# Cloudflare Serverless 開發功能完整列表
+# Cloudflare Serverless Features Complete Guide
 
-## 概述
+## Overview
 
-本文檔整理了 Cloudflare 平台提供的所有 Serverless 開發功能，包括核心服務、AI 能力、數據存儲、開發工具等。這些功能可以單獨使用或組合使用，構建完整的無伺服器應用。
+This document provides a comprehensive overview of all Cloudflare Serverless platform features, including core runtime services, data storage solutions, AI capabilities, messaging services, and development tools. It serves as a complete reference for building modern serverless applications on Cloudflare's global edge network.
 
----
+## Core Runtime Services
 
-## 核心運行時
+### 🚀 Workers - Edge Computing Platform
 
-### 1. Cloudflare Workers
+**Description**: Global edge computing platform that runs JavaScript, TypeScript, Rust, and Python code at the edge.
 
-**描述**: 全球邊緣計算平台，在 200+ 城市運行 JavaScript/TypeScript 代碼
+**Key Features**:
+- **Global Distribution**: Deploy to 200+ locations worldwide
+- **Cold Start**: <1ms startup time
+- **Memory**: 128MB per request
+- **CPU Time**: Up to 5 minutes per request
+- **Languages**: JavaScript, TypeScript, Rust, Python
 
-**主要特性**:
-- 全球部署，自動路由到最近的邊緣節點
-- 支持 JavaScript、TypeScript、Rust、Python
-- 冷啟動時間 < 1ms
-- CPU 時間限制：5分鐘（2025年更新）
-- 記憶體：128MB
+**Use Cases**:
+- API endpoints and microservices
+- Request/response processing
+- Real-time data transformation
+- Edge-side rendering
+- A/B testing and feature flags
 
-**基本用法**:
+**Example**:
 ```javascript
 export default {
   async fetch(request, env, ctx) {
-    return new Response('Hello World!', {
-      headers: { 'content-type': 'text/plain' },
-    });
-  },
+    const url = new URL(request.url);
+    
+    if (url.pathname === '/api/users') {
+      const users = await env.DB.prepare("SELECT * FROM users").all();
+      return Response.json(users);
+    }
+    
+    return new Response('Hello from Cloudflare Workers!');
+  }
 };
 ```
 
-**部署命令**:
-```bash
-# 安裝 Wrangler CLI
-npm install -g wrangler
+---
 
-# 登入
-wrangler login
+### 📦 Containers - Containerized Applications
 
-# 開發
-wrangler dev
+**Description**: Run containerized applications on Cloudflare's edge network with support for any language and runtime.
 
-# 部署
-wrangler deploy
-```
+**Key Features**:
+- **Language Support**: Any language that can run in containers
+- **Memory**: 1-4GB per container
+- **CPU Time**: Unlimited execution time
+- **Cold Start**: Slower than Workers but more flexible
+- **Docker Support**: Full Docker compatibility
 
-**配置範例** (`wrangler.toml`):
-```toml
-name = "my-worker"
-main = "src/index.js"
-compatibility_date = "2024-01-01"
+**Use Cases**:
+- Legacy application migration
+- Complex computational workloads
+- Language-specific requirements
+- Long-running processes
+- Existing containerized applications
 
-[env.production]
-name = "my-worker-prod"
-
-[env.staging]
-name = "my-worker-staging"
+**Example**:
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 8080
+CMD ["npm", "start"]
 ```
 
 ---
 
-### 2. Cloudflare Pages
+### 🌐 Pages - Static Sites and Full-Stack Apps
 
-**描述**: 靜態網站託管和全棧應用平台
+**Description**: Platform for static websites and full-stack applications with automatic builds and deployments.
 
-**主要特性**:
-- 自動構建和部署
-- 支持 React、Vue、Svelte 等框架
-- 內建 Functions 支持
-- 自定義域名和 SSL
-- 分支預覽
+**Key Features**:
+- **Static Site Hosting**: Fast global CDN for static content
+- **Full-Stack Support**: Server-side rendering and API routes
+- **Git Integration**: Automatic deployments from Git
+- **Custom Domains**: Easy domain management
+- **Preview Deployments**: Automatic preview URLs for PRs
 
-**框架支持**:
-- React (Next.js, Remix)
-- Vue (Nuxt)
-- Svelte (SvelteKit)
-- Astro
-- Hono
+**Use Cases**:
+- Static websites and blogs
+- Documentation sites
+- Marketing pages
+- Full-stack web applications
+- JAMstack applications
 
-**配置範例** (`wrangler.toml`):
-```toml
-[build]
-command = "npm run build"
-output_directory = "dist"
-
-[build.environment]
-NODE_VERSION = "18"
-
-[[redirects]]
-from = "/api/*"
-to = "/api/:splat"
-status = 200
+**Example**:
+```javascript
+// pages/api/users.js
+export async function onRequest(context) {
+  const users = await context.env.DB.prepare("SELECT * FROM users").all();
+  return Response.json(users);
+}
 ```
 
 ---
 
-## AI 與機器學習
+## Data Storage Services
 
-### 3. Workers AI
+### 💾 D1 - SQL Database
 
-**描述**: 邊緣 AI 推理服務，支持多種 AI 模型
+**Description**: Serverless SQL database built on SQLite with global distribution and strong consistency.
 
-**支持模型**:
-- **文本生成**: Llama 3.1, DeepSeek, Mistral, Phi-3
-- **圖像生成**: Stable Diffusion XL, DeepSeek
-- **語音轉文字**: Whisper
-- **文字轉語音**: Coqui TTS
-- **嵌入**: text-embedding-3-small
+**Key Features**:
+- **SQL Compatibility**: Full SQLite compatibility
+- **Global Distribution**: Data replicated globally
+- **Strong Consistency**: ACID transactions
+- **Capacity**: 10GB per database
+- **Cost**: Per query billing
 
-**基本用法**:
+**Use Cases**:
+- Relational data storage
+- User accounts and authentication
+- E-commerce applications
+- Content management systems
+- Analytics and reporting
+
+**Example**:
+```javascript
+// Create table
+await env.DB.prepare(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`).run();
+
+// Insert data
+const result = await env.DB.prepare(
+  "INSERT INTO users (name, email) VALUES (?, ?)"
+).bind('John Doe', 'john@example.com').run();
+
+// Query data
+const users = await env.DB.prepare(
+  "SELECT * FROM users WHERE email = ?"
+).bind('john@example.com').all();
+```
+
+---
+
+### 🗄️ R2 - Object Storage
+
+**Description**: S3-compatible object storage with global CDN and no egress fees.
+
+**Key Features**:
+- **S3 Compatibility**: Drop-in replacement for S3
+- **Global CDN**: Automatic content distribution
+- **No Egress Fees**: Free data transfer out
+- **Unlimited Storage**: No storage limits
+- **Multipart Uploads**: Support for large files
+
+**Use Cases**:
+- File storage and hosting
+- Image and video storage
+- Backup and archival
+- Static asset hosting
+- Data lake storage
+
+**Example**:
+```javascript
+// Upload file
+await env.MY_BUCKET.put('images/photo.jpg', imageData, {
+  httpMetadata: {
+    contentType: 'image/jpeg',
+    cacheControl: 'public, max-age=3600'
+  }
+});
+
+// Download file
+const object = await env.MY_BUCKET.get('images/photo.jpg');
+if (object) {
+  return new Response(object.body, {
+    headers: {
+      'content-type': object.httpMetadata?.contentType || 'application/octet-stream'
+    }
+  });
+}
+
+// Generate presigned URL
+const url = await env.MY_BUCKET.createPresignedUrl('images/photo.jpg', 3600);
+```
+
+---
+
+### 🔑 KV - Key-Value Storage
+
+**Description**: Global key-value store with extremely low latency and eventual consistency.
+
+**Key Features**:
+- **Low Latency**: Sub-millisecond access times
+- **Global Distribution**: Data available worldwide
+- **Eventual Consistency**: Optimized for performance
+- **Capacity**: 25GB per namespace
+- **Cost**: Per read/write billing
+
+**Use Cases**:
+- Configuration storage
+- Session management
+- Caching layer
+- Feature flags
+- User preferences
+
+**Example**:
+```javascript
+// Set value
+await env.MY_KV.put('user:123:preferences', JSON.stringify({
+  theme: 'dark',
+  language: 'en'
+}), { expirationTtl: 86400 });
+
+// Get value
+const preferences = await env.MY_KV.get('user:123:preferences', { type: 'json' });
+
+// Get multiple values
+const values = await env.MY_KV.getMany([
+  'user:123:preferences',
+  'user:123:session',
+  'user:123:profile'
+]);
+
+// Delete value
+await env.MY_KV.delete('user:123:session');
+```
+
+---
+
+### 🔄 Durable Objects - State Management
+
+**Description**: Strongly consistent state management for real-time applications and complex workflows.
+
+**Key Features**:
+- **Strong Consistency**: ACID transactions
+- **Global Uniqueness**: Single instance per ID
+- **Real-time Updates**: WebSocket support
+- **Memory**: 128MB per instance
+- **Cost**: Per instance billing
+
+**Use Cases**:
+- Real-time collaboration
+- Chat applications
+- Gaming servers
+- Stateful workflows
+- Distributed locks
+
+**Example**:
+```javascript
+export class ChatRoom {
+  constructor(state, env) {
+    this.state = state;
+    this.env = env;
+    this.users = new Map();
+    this.messages = [];
+  }
+
+  async fetch(request) {
+    const url = new URL(request.url);
+    
+    switch (url.pathname) {
+      case '/join':
+        return this.handleJoin(request);
+      case '/message':
+        return this.handleMessage(request);
+      case '/messages':
+        return this.getMessages();
+      default:
+        return new Response('Not found', { status: 404 });
+    }
+  }
+
+  async handleJoin(request) {
+    const user = await request.json();
+    this.users.set(user.id, user);
+    return Response.json({ success: true });
+  }
+
+  async handleMessage(request) {
+    const message = await request.json();
+    this.messages.push(message);
+    return Response.json({ success: true });
+  }
+
+  async getMessages() {
+    return Response.json(this.messages);
+  }
+}
+
+// Usage
+export default {
+  async fetch(request, env) {
+    const id = env.CHAT_ROOM.idFromName('room-1');
+    const obj = env.CHAT_ROOM.get(id);
+    return obj.fetch(request);
+  }
+};
+```
+
+---
+
+## AI and Machine Learning
+
+### 🤖 Workers AI - Edge AI Inference
+
+**Description**: Run AI models at the edge with support for text, image, and audio processing.
+
+**Key Features**:
+- **Multimodal Support**: Text, image, audio processing
+- **Edge Inference**: Low latency AI processing
+- **Multiple Models**: Various pre-trained models
+- **Cost Optimization**: Pay per inference
+- **Global Distribution**: AI processing worldwide
+
+**Use Cases**:
+- Content generation
+- Image processing and generation
+- Speech-to-text conversion
+- Sentiment analysis
+- Language translation
+
+**Example**:
 ```javascript
 import { Ai } from '@cloudflare/ai';
 
@@ -116,358 +333,575 @@ export default {
   async fetch(request, env) {
     const ai = new Ai(env.AI);
     
-    // 文本生成
-    const response = await ai.run('@cf/meta/llama-3.1-8b-instruct', {
-      messages: [{ role: 'user', content: 'Hello!' }]
+    // Text generation
+    const textResponse = await ai.run('@cf/meta/llama-2-7b-chat-int8', {
+      messages: [{ role: 'user', content: 'Explain quantum computing' }]
+    });
+    
+    // Image generation
+    const imageResponse = await ai.run('@cf/bytedance/stable-diffusion-xl-base-1.0', {
+      prompt: 'A beautiful sunset over mountains'
+    });
+    
+    // Speech-to-text
+    const audioData = await request.arrayBuffer();
+    const transcription = await ai.run('@cf/openai/whisper', {
+      audio: audioData
+    });
+    
+    return Response.json({
+      text: textResponse,
+      image: imageResponse,
+      transcription: transcription
+    });
+  }
+};
+```
+
+---
+
+### 🧠 AI Agents SDK - Intelligent Agents
+
+**Description**: Framework for building intelligent agents with multi-agent collaboration and persistent conversations.
+
+**Key Features**:
+- **Multi-Agent Support**: Multiple agents working together
+- **Persistent Conversations**: Long-term memory and context
+- **Tool Integration**: Connect to external APIs and services
+- **Human-in-the-Loop**: Human oversight and intervention
+- **Scalable Architecture**: Handle complex workflows
+
+**Use Cases**:
+- Customer service automation
+- Content creation workflows
+- Data analysis and reporting
+- Process automation
+- Intelligent assistants
+
+**Example**:
+```javascript
+import { Agent } from '@cloudflare/agents';
+
+export default {
+  async fetch(request, env) {
+    const agent = new Agent({
+      name: 'CustomerServiceAgent',
+      instructions: 'You are a helpful customer service agent.',
+      tools: [
+        {
+          name: 'get_user_info',
+          description: 'Get user information from database',
+          parameters: {
+            type: 'object',
+            properties: {
+              userId: { type: 'string' }
+            }
+          },
+          function: async (params) => {
+            const user = await env.DB.prepare(
+              "SELECT * FROM users WHERE id = ?"
+            ).bind(params.userId).first();
+            return user;
+          }
+        }
+      ]
+    });
+    
+    const response = await agent.run({
+      messages: [{ role: 'user', content: 'Help me with my account' }]
     });
     
     return Response.json(response);
-  },
+  }
 };
 ```
 
-**高級功能**:
-```javascript
-// 串流響應
-const stream = await ai.run('@cf/meta/llama-3.1-8b-instruct', {
-  messages: [{ role: 'user', content: 'Tell me a story' }],
-  stream: true
-});
-
-// 工具調用
-const response = await ai.run('@cf/openai/gpt-4o-mini', {
-  messages: [{ role: 'user', content: 'What\'s the weather?' }],
-  tools: [{
-    type: 'function',
-    function: {
-      name: 'get_weather',
-      description: 'Get weather for a location',
-      parameters: {
-        type: 'object',
-        properties: {
-          location: { type: 'string' }
-        }
-      }
-    }
-  }]
-});
-```
-
-**配置** (`wrangler.toml`):
-```toml
-[[ai]]
-binding = "AI"
-```
-
 ---
 
-### 4. AI Agents SDK
+## Messaging and Queues
 
-**描述**: 構建智能 Agent 的框架
+### 📨 Queues - Asynchronous Message Processing
 
-**主要特性**:
-- 多 Agent 系統支持
-- 人機協作流程
-- 可尋址 Agent
-- 持久化執行
+**Description**: Reliable message queues for asynchronous task processing and event-driven architectures.
 
-**基本 Agent**:
+**Key Features**:
+- **Reliable Delivery**: At-least-once message delivery
+- **Batch Processing**: Process multiple messages efficiently
+- **Retry Logic**: Automatic retry with exponential backoff
+- **Dead Letter Queues**: Handle failed messages
+- **Scalable**: Handle high message volumes
+
+**Use Cases**:
+- Background job processing
+- Email and notification sending
+- Data processing pipelines
+- Event-driven architectures
+- Microservice communication
+
+**Example**:
 ```javascript
-import { Agent } from 'agents-sdk';
-
-export class ChatAgent extends Agent {
-  async onChatMessage(onFinish) {
-    return agentContext.run(this, async () => {
-      const result = streamText({
-        model: openai("gpt-4o-2024-11-20"),
-        system: "You are a helpful assistant.",
-        messages: this.messages,
-        onFinish,
-        maxSteps: 10,
-      });
-      
-      result.mergeIntoDataStream(dataStream);
-    });
-  }
-}
-```
-
-**實時 Agent**:
-```javascript
-export class RealtimeAgent extends Agent {
-  async onConnect(connection, ctx) {
-    const agent = new RealtimeAgent({
-      instructions: "You are a helpful assistant...",
-      name: "Triage Agent",
-    });
-  }
-}
-```
-
-**安裝**:
-```bash
-npm i agents-sdk
-npm create cloudflare@latest -- --template cloudflare/agents-starter
-```
-
----
-
-## 數據存儲
-
-### 5. D1 Database
-
-**描述**: 基於 SQLite 的邊緣數據庫
-
-**主要特性**:
-- 全球分佈式
-- SQL 查詢
-- 事務支持
-- 自動備份
-
-**基本用法**:
-```javascript
+// Producer
 export default {
   async fetch(request, env) {
-    const { results } = await env.DB.prepare(
-      "SELECT * FROM users WHERE id = ?"
-    ).bind(1).all();
+    const data = await request.json();
     
-    return Response.json(results);
-  },
-};
-```
-
-**遷移管理**:
-```bash
-# 創建遷移
-wrangler d1 migrations create DB create_users_table
-
-# 應用遷移
-wrangler d1 migrations apply DB
-
-# 本地開發
-wrangler d1 execute DB --local --file=./schema.sql
-```
-
-**配置** (`wrangler.toml`):
-```toml
-[[d1_databases]]
-binding = "DB"
-database_name = "my-db"
-database_id = "xxx"
-```
-
----
-
-### 6. R2 Storage
-
-**描述**: S3 兼容的對象存儲服務
-
-**主要特性**:
-- S3 API 兼容
-- 無出口費用
-- 全球分佈
-- 自動 CDN
-
-**基本用法**:
-```javascript
-export default {
-  async fetch(request, env) {
-    // 上傳文件
-    const object = await env.MY_BUCKET.put('key', 'value', {
-      httpMetadata: { contentType: 'text/plain' }
+    // Send single message
+    await env.MY_QUEUE.send({
+      type: 'user_registration',
+      userId: data.userId,
+      email: data.email,
+      timestamp: Date.now()
     });
     
-    // 下載文件
-    const file = await env.MY_BUCKET.get('key');
-    
-    // 列出對象
-    const list = await env.MY_BUCKET.list();
+    // Send batch of messages
+    await env.MY_QUEUE.sendBatch([
+      { body: { type: 'welcome_email', userId: data.userId } },
+      { body: { type: 'setup_profile', userId: data.userId } }
+    ]);
     
     return Response.json({ success: true });
-  },
+  }
 };
-```
 
-**配置** (`wrangler.toml`):
-```toml
-[[r2_buckets]]
-binding = "MY_BUCKET"
-bucket_name = "my-bucket"
+// Consumer
+export default {
+  async queue(batch, env) {
+    for (const message of batch.messages) {
+      const { type, userId, email } = message.body;
+      
+      switch (type) {
+        case 'user_registration':
+          await processUserRegistration(userId, email, env);
+          break;
+        case 'welcome_email':
+          await sendWelcomeEmail(userId, env);
+          break;
+        case 'setup_profile':
+          await setupUserProfile(userId, env);
+          break;
+      }
+    }
+  }
+};
 ```
 
 ---
 
-### 7. KV Storage
+### 📡 Pub/Sub - Real-time Messaging
 
-**描述**: 鍵值對存儲服務
+**Description**: Publish-subscribe messaging for real-time notifications and event broadcasting.
 
-**主要特性**:
-- 低延遲讀取
-- 全球分佈
-- 簡單的鍵值 API
+**Key Features**:
+- **Real-time Delivery**: Sub-millisecond message delivery
+- **Multiple Subscribers**: One-to-many message distribution
+- **Topic-based**: Organize messages by topics
+- **WebSocket Support**: Real-time client connections
+- **Event-driven**: Trigger actions on message receipt
 
-**基本用法**:
+**Use Cases**:
+- Real-time notifications
+- Live chat applications
+- IoT device communication
+- Event streaming
+- Real-time dashboards
+
+**Example**:
 ```javascript
+// Publisher
 export default {
   async fetch(request, env) {
-    // 寫入
-    await env.MY_KV.put('key', 'value');
+    const data = await request.json();
     
-    // 讀取
-    const value = await env.MY_KV.get('key');
+    // Publish message to topic
+    await env.MY_PUBSUB.publish('user_events', {
+      type: 'user_login',
+      userId: data.userId,
+      timestamp: Date.now()
+    });
     
-    // 列出鍵
-    const keys = await env.MY_KV.list();
-    
-    return Response.json({ value });
-  },
-};
-```
-
-**配置** (`wrangler.toml`):
-```toml
-[[kv_namespaces]]
-binding = "MY_KV"
-id = "xxx"
-preview_id = "yyy"
-```
-
----
-
-### 8. Durable Objects
-
-**描述**: 強一致性狀態管理
-
-**主要特性**:
-- 強一致性
-- 狀態持久化
-- 實時協作
-- 唯一性保證
-
-**基本用法**:
-```javascript
-// 定義 Durable Object
-export class ChatRoom extends DurableObject {
-  constructor(state, env) {
-    super(state, env);
-    this.users = new Map();
+    return Response.json({ success: true });
   }
-  
-  async fetch(request) {
+};
+
+// Subscriber
+export default {
+  async fetch(request, env) {
     const url = new URL(request.url);
     
-    if (url.pathname === '/websocket') {
+    if (url.pathname === '/subscribe') {
       const pair = new WebSocketPair();
       const [client, server] = Object.values(pair);
       
       server.accept();
-      server.addEventListener('message', event => {
-        // 處理消息
-        server.send(JSON.stringify({ message: event.data }));
+      
+      // Subscribe to topic
+      env.MY_PUBSUB.subscribe('user_events', (message) => {
+        server.send(JSON.stringify(message));
       });
       
       return new Response(null, { status: 101, webSocket: client });
     }
     
-    return new Response('Chat Room');
+    return new Response('WebSocket endpoint: /subscribe');
   }
-}
-
-// 使用 Durable Object
-export default {
-  async fetch(request, env) {
-    const id = env.CHAT_ROOM.idFromName('room1');
-    const obj = env.CHAT_ROOM.get(id);
-    return obj.fetch(request);
-  },
 };
-```
-
-**配置** (`wrangler.toml`):
-```toml
-[[durable_objects.bindings]]
-name = "CHAT_ROOM"
-class_name = "ChatRoom"
-
-[[migrations]]
-tag = "v1"
-new_classes = ["ChatRoom"]
 ```
 
 ---
 
-### 9. Hyperdrive
+## Development Tools
 
-**描述**: 連接外部數據庫的服務
+### 🛠️ Wrangler CLI - Development and Deployment
 
-**支持數據庫**:
-- PostgreSQL
-- MySQL
-- SQLite
+**Description**: Command-line tool for developing, testing, and deploying Cloudflare applications.
 
-**基本用法**:
+**Key Features**:
+- **Local Development**: Run applications locally
+- **Environment Management**: Multiple environment support
+- **Secrets Management**: Secure credential storage
+- **Database Tools**: D1, R2, and KV management
+- **Deployment**: Easy deployment to production
+
+**Common Commands**:
+```bash
+# Project management
+wrangler init my-project
+wrangler dev
+wrangler deploy
+
+# Environment management
+wrangler secret put API_KEY
+wrangler secret list
+
+# Database management
+wrangler d1 create my-db
+wrangler d1 execute my-db --file=./schema.sql
+
+# Storage management
+wrangler kv:namespace create MY_KV
+wrangler r2 bucket create my-bucket
+```
+
+---
+
+### 📦 Vite Plugin - Build Integration
+
+**Description**: Vite plugin for building and optimizing Cloudflare applications.
+
+**Key Features**:
+- **Build Optimization**: Optimized builds for edge runtime
+- **TypeScript Support**: Full TypeScript integration
+- **Hot Reload**: Fast development experience
+- **Asset Optimization**: Automatic asset optimization
+- **Environment Variables**: Seamless environment variable handling
+
+**Configuration**:
+```javascript
+// vite.config.js
+import { defineConfig } from 'vite';
+import { cloudflare } from '@cloudflare/vite-plugin';
+
+export default defineConfig({
+  plugins: [cloudflare()],
+  build: {
+    target: 'esnext',
+    rollupOptions: {
+      external: ['@cloudflare/ai']
+    }
+  }
+});
+```
+
+---
+
+## Security Services
+
+### 🔐 Access - Authentication and Authorization
+
+**Description**: Zero-trust access control for applications and APIs.
+
+**Key Features**:
+- **Identity Providers**: Support for multiple IdPs
+- **Policy Engine**: Flexible access policies
+- **Single Sign-On**: Seamless SSO experience
+- **API Protection**: Secure API access
+- **Audit Logs**: Comprehensive access logging
+
+**Use Cases**:
+- Application access control
+- API security
+- Internal tool access
+- Partner integrations
+- Compliance requirements
+
+**Example**:
 ```javascript
 export default {
   async fetch(request, env) {
-    const { results } = await env.DB.prepare(
-      "SELECT * FROM users WHERE id = ?"
-    ).bind(1).all();
+    // Get user information from Access
+    const user = await env.AUTH.getUserInfo(request);
     
-    return Response.json(results);
-  },
+    if (!user) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+    
+    // Check user permissions
+    if (!user.groups.includes('admin')) {
+      return new Response('Forbidden', { status: 403 });
+    }
+    
+    // Process request
+    return Response.json({ message: 'Hello, ' + user.email });
+  }
 };
-```
-
-**配置** (`wrangler.toml`):
-```toml
-[[hyperdrive]]
-binding = "DB"
-id = "xxx"
 ```
 
 ---
 
-## 消息與隊列
+### 🛡️ Turnstile - CAPTCHA Alternative
 
-### 10. Queues
+**Description**: Privacy-first CAPTCHA alternative that doesn't require user interaction.
 
-**描述**: 異步消息隊列服務
+**Key Features**:
+- **Privacy-First**: No personal data collection
+- **Invisible**: No user interaction required
+- **Machine Learning**: Advanced bot detection
+- **Global Coverage**: Available worldwide
+- **Easy Integration**: Simple implementation
 
-**主要特性**:
-- 可靠傳遞
-- 批量處理
-- 重試機制
-- 死信隊列
+**Use Cases**:
+- Form protection
+- API rate limiting
+- Bot prevention
+- Account creation
+- Comment systems
 
-**生產者**:
+**Example**:
 ```javascript
 export default {
   async fetch(request, env) {
-    await env.MY_QUEUE.send({
-      message: 'Hello from producer',
-      timestamp: Date.now()
+    if (request.method === 'POST') {
+      const formData = await request.formData();
+      const token = formData.get('cf-turnstile-response');
+      
+      // Verify Turnstile token
+      const result = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          secret: env.TURNSTILE_SECRET,
+          response: token
+        })
+      });
+      
+      const verification = await result.json();
+      
+      if (!verification.success) {
+        return new Response('Verification failed', { status: 400 });
+      }
+      
+      // Process form submission
+      return Response.json({ success: true });
+    }
+    
+    return new Response('Method not allowed', { status: 405 });
+  }
+};
+```
+
+---
+
+## Monitoring and Analytics
+
+### 📊 Analytics Engine - Data Analytics
+
+**Description**: Real-time analytics and data processing at the edge.
+
+**Key Features**:
+- **Real-time Processing**: Immediate data analysis
+- **Custom Metrics**: Define your own metrics
+- **Global Aggregation**: Data from all edge locations
+- **SQL Queries**: Query data with SQL
+- **Cost Effective**: Pay per data point
+
+**Use Cases**:
+- Application analytics
+- User behavior tracking
+- Performance monitoring
+- Business intelligence
+- A/B testing
+
+**Example**:
+```javascript
+export default {
+  async fetch(request, env) {
+    const start = Date.now();
+    
+    // Process request
+    const response = await handleRequest(request, env);
+    
+    // Record metrics
+    const duration = Date.now() - start;
+    env.ANALYTICS.writeDataPoint({
+      blobs: ['api_request', request.method],
+      doubles: [duration, response.status],
+      indexes: ['endpoint', 'status']
     });
     
-    return new Response('Message sent');
-  },
+    return response;
+  }
 };
 ```
 
-**消費者**:
+---
+
+### 📝 Logpush - Log Management
+
+**Description**: Push logs to external destinations for analysis and monitoring.
+
+**Key Features**:
+- **Multiple Destinations**: Support for various log sinks
+- **Real-time Delivery**: Immediate log transmission
+- **Filtering**: Selective log forwarding
+- **Compression**: Efficient data transfer
+- **Retention**: Configurable log retention
+
+**Use Cases**:
+- Centralized logging
+- Security monitoring
+- Compliance requirements
+- Performance analysis
+- Debugging and troubleshooting
+
+**Configuration**:
+```bash
+# Configure Logpush
+wrangler logpush create my-dataset \
+  --destination=datadog \
+  --destination-config='{"api_key":"your-api-key"}' \
+  --filter='{"where":"status >= 400"}'
+```
+
+---
+
+## Integration Services
+
+### 🔗 Hyperdrive - External Database Connections
+
+**Description**: Connect to external databases with connection pooling and caching.
+
+**Key Features**:
+- **Connection Pooling**: Efficient database connections
+- **Caching**: Automatic query result caching
+- **Multiple Databases**: Support for various database types
+- **Global Distribution**: Connections from edge locations
+- **Security**: Encrypted connections
+
+**Use Cases**:
+- Legacy database integration
+- Multi-database architectures
+- Database migration
+- Performance optimization
+- Hybrid cloud deployments
+
+**Example**:
 ```javascript
 export default {
-  async queue(batch, env) {
-    for (const message of batch.messages) {
-      console.log('Processing:', message.body);
-      // 處理消息
-    }
-  },
+  async fetch(request, env) {
+    // Query external PostgreSQL database
+    const users = await env.HYPERDRIVE.prepare(
+      "SELECT * FROM users WHERE status = ?"
+    ).bind('active').all();
+    
+    return Response.json(users);
+  }
 };
 ```
 
-**配置** (`wrangler.toml`):
+---
+
+### 🖼️ Images - Image Processing
+
+**Description**: On-demand image processing and optimization at the edge.
+
+**Key Features**:
+- **Format Conversion**: Convert between image formats
+- **Resizing**: Dynamic image resizing
+- **Optimization**: Automatic image optimization
+- **Watermarking**: Add watermarks to images
+- **Metadata**: Extract and modify image metadata
+
+**Use Cases**:
+- Content management systems
+- E-commerce product images
+- Social media applications
+- Photo sharing platforms
+- Web performance optimization
+
+**Example**:
+```javascript
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const imagePath = url.searchParams.get('image');
+    
+    if (!imagePath) {
+      return new Response('Image parameter required', { status: 400 });
+    }
+    
+    // Process image with transformations
+    const image = await env.IMAGES.get(imagePath, {
+      width: 800,
+      height: 600,
+      format: 'webp',
+      quality: 85
+    });
+    
+    return new Response(image.body, {
+      headers: { 'content-type': 'image/webp' }
+    });
+  }
+};
+```
+
+---
+
+## Configuration Examples
+
+### Complete wrangler.toml Configuration
+
 ```toml
+name = "full-stack-application"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+API_VERSION = "v1"
+
+# AI services
+[[ai]]
+binding = "AI"
+
+# Database
+[[d1_databases]]
+binding = "DB"
+database_name = "my-database"
+database_id = "your-database-id"
+
+# Object storage
+[[r2_buckets]]
+binding = "MY_BUCKET"
+bucket_name = "my-bucket"
+
+# Key-value storage
+[[kv_namespaces]]
+binding = "MY_KV"
+id = "your-kv-id"
+preview_id = "your-preview-kv-id"
+
+# Message queues
 [[queues.producers]]
 binding = "MY_QUEUE"
 queue = "my-queue"
@@ -475,369 +909,258 @@ queue = "my-queue"
 [[queues.consumers]]
 queue = "my-queue"
 max_batch_size = 10
-max_batch_timeout = 30
-```
 
----
+# Durable Objects
+[[durable_objects.bindings]]
+name = "CHAT_ROOM"
+class_name = "ChatRoom"
 
-### 11. Pub/Sub
+[[migrations]]
+tag = "v1"
+new_classes = ["ChatRoom"]
 
-**描述**: 發布/訂閱消息服務
-
-**基本用法**:
-```javascript
-// 發布者
-export default {
-  async fetch(request, env) {
-    await env.MY_PUBSUB.publish('channel1', {
-      message: 'Hello subscribers!',
-      timestamp: Date.now()
-    });
-    
-    return new Response('Published');
-  },
-};
-
-// 訂閱者
-export default {
-  async fetch(request, env) {
-    const subscription = await env.MY_PUBSUB.subscribe('channel1');
-    
-    return new Response(subscription.readable, {
-      headers: { 'content-type': 'text/event-stream' }
-    });
-  },
-};
-```
-
-**配置** (`wrangler.toml`):
-```toml
-[[pubsub]]
-binding = "MY_PUBSUB"
-```
-
----
-
-## 容器與運行時
-
-### 12. Cloudflare Containers
-
-**描述**: 容器化應用部署服務
-
-**主要特性**:
-- 全球部署 (Region: Earth)
-- 與 Workers 整合
-- 按需計費
-- 多種實例類型
-
-**實例類型**:
-| 類型 | 記憶體 | CPU | 磁盤 |
-|------|--------|-----|------|
-| dev | 256 MiB | 1/16 vCPU | 2 GB |
-| basic | 1 GiB | 1/4 vCPU | 4 GB |
-| standard | 4 GiB | 1/2 vCPU | 4 GB |
-
-**基本用法**:
-```javascript
-export class MyContainer extends Container {
-  defaultPort = 8080;
-  sleepAfter = '5m';
-}
-```
-
-**配置** (`wrangler.toml`):
-```toml
-[[containers]]
-class_name = "MyContainer"
-image = "./Dockerfile"
-max_instances = 80
-instance_type = "basic"
-```
-
----
-
-## 開發工具
-
-### 13. Wrangler CLI
-
-**描述**: Cloudflare 開發命令行工具
-
-**主要命令**:
-```bash
-# 項目管理
-wrangler init my-project
-wrangler dev
-wrangler deploy
-
-# 數據庫管理
-wrangler d1 execute DB --local --file=./schema.sql
-wrangler d1 migrations apply DB
-
-# 存儲管理
-wrangler kv:key put --binding=MY_KV key value
-wrangler r2 object put my-bucket/key ./file.txt
-
-# 監控
-wrangler tail
-wrangler analytics
-```
-
----
-
-### 14. Cloudflare Vite Plugin
-
-**描述**: Vite 構建工具整合
-
-**安裝**:
-```bash
-npm install -D @cloudflare/vite-plugin
-```
-
-**配置** (`vite.config.js`):
-```javascript
-import { defineConfig } from 'vite';
-import cloudflare from '@cloudflare/vite-plugin';
-
-export default defineConfig({
-  plugins: [cloudflare()],
-  build: {
-    target: 'esnext',
-  },
-});
-```
-
----
-
-## 安全與認證
-
-### 15. Access
-
-**描述**: 零信任身份驗證服務
-
-**基本用法**:
-```javascript
-export default {
-  async fetch(request, env) {
-    // 檢查用戶身份
-    const user = await env.AUTH.getUserInfo(request);
-    
-    if (!user) {
-      return new Response('Unauthorized', { status: 401 });
-    }
-    
-    return Response.json({ user });
-  },
-};
-```
-
-**配置** (`wrangler.toml`):
-```toml
-[[access]]
-binding = "AUTH"
-```
-
----
-
-### 16. Turnstile
-
-**描述**: 隱私友好的 CAPTCHA 替代方案
-
-**基本用法**:
-```javascript
-export default {
-  async fetch(request, env) {
-    const formData = await request.formData();
-    const token = formData.get('cf-turnstile-response');
-    
-    const result = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        secret: env.TURNSTILE_SECRET,
-        response: token,
-      }),
-    });
-    
-    const outcome = await result.json();
-    
-    if (outcome.success) {
-      return new Response('Verification successful');
-    } else {
-      return new Response('Verification failed', { status: 400 });
-    }
-  },
-};
-```
-
----
-
-## 監控與分析
-
-### 17. Analytics Engine
-
-**描述**: 實時數據分析服務
-
-**基本用法**:
-```javascript
-export default {
-  async fetch(request, env) {
-    // 記錄事件
-    env.ANALYTICS.writeDataPoint({
-      blobs: ['page_view', '/home'],
-      doubles: [1],
-      indexes: ['page']
-    });
-    
-    return new Response('Analytics recorded');
-  },
-};
-```
-
-**配置** (`wrangler.toml`):
-```toml
+# Analytics
 [[analytics_engine_datasets]]
 binding = "ANALYTICS"
-```
 
----
-
-### 18. Logpush
-
-**描述**: 日誌推送服務
-
-**配置** (`wrangler.toml`):
-```toml
-[logpush]
-destination = "https://your-endpoint.com/logs"
-```
-
----
-
-## 整合服務
-
-### 19. Email Routing
-
-**描述**: 電子郵件路由服務
-
-**基本用法**:
-```javascript
-export default {
-  async fetch(request, env) {
-    const email = await request.json();
-    
-    // 處理收到的郵件
-    console.log('From:', email.from);
-    console.log('To:', email.to);
-    console.log('Subject:', email.subject);
-    console.log('Body:', email.text);
-    
-    return new Response('Email processed');
-  },
-};
-```
-
----
-
-### 20. Images
-
-**描述**: 圖像處理和優化服務
-
-**基本用法**:
-```javascript
-export default {
-  async fetch(request, env) {
-    const image = await env.IMAGES.get('image-id');
-    
-    // 調整大小
-    const resized = await image.resize({
-      width: 300,
-      height: 200,
-      fit: 'cover'
-    });
-    
-    return new Response(resized, {
-      headers: { 'content-type': 'image/jpeg' }
-    });
-  },
-};
-```
-
-**配置** (`wrangler.toml`):
-```toml
+# Images
 [[images]]
 binding = "IMAGES"
+
+# Hyperdrive
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "your-hyperdrive-id"
+
+# Environment-specific configurations
+[env.staging]
+name = "full-stack-application-staging"
+vars = { ENVIRONMENT = "staging" }
+
+[env.production]
+name = "full-stack-application-prod"
+vars = { ENVIRONMENT = "production" }
 ```
 
 ---
 
-## 開發最佳實踐
+## Best Practices
 
-### 項目結構建議
+### 🏗️ Architecture Patterns
+
+#### Simple API Service
 ```
-my-worker/
-├── src/
-│   ├── index.js          # 主入口
-│   ├── api/              # API 路由
-│   ├── utils/            # 工具函數
-│   └── types/            # TypeScript 類型
-├── wrangler.toml         # 配置文件
-├── package.json
-└── README.md
+Workers + D1 + KV
+├── Workers: API logic and routing
+├── D1: Primary data storage
+└── KV: Configuration and caching
 ```
 
-### 環境變量管理
-```toml
-# wrangler.toml
-[vars]
-API_KEY = "your-api-key"
-ENVIRONMENT = "production"
-
-[env.staging.vars]
-ENVIRONMENT = "staging"
+#### File Processing Pipeline
+```
+Workers + R2 + Queues
+├── Workers: Processing logic
+├── R2: File storage
+└── Queues: Asynchronous processing
 ```
 
-### 錯誤處理
-```javascript
-export default {
-  async fetch(request, env) {
-    try {
-      // 你的邏輯
-      return new Response('Success');
-    } catch (error) {
-      console.error('Error:', error);
-      return new Response('Internal Server Error', { status: 500 });
-    }
-  },
-};
+#### Real-time Application
+```
+Workers + Durable Objects + Pub/Sub
+├── Workers: WebSocket handling
+├── Durable Objects: State management
+└── Pub/Sub: Real-time messaging
 ```
 
-### 性能優化
-- 使用緩存減少重複計算
-- 批量處理數據庫操作
-- 利用 Durable Objects 進行狀態管理
-- 使用串流處理大數據
+#### AI-powered Application
+```
+Workers + Workers AI + D1
+├── Workers: Business logic
+├── Workers AI: AI processing
+└── D1: Data storage
+```
 
 ---
 
-## 學習資源
+### 🔒 Security Considerations
 
-### 官方文檔
-- [Workers 文檔](https://developers.cloudflare.com/workers/)
-- [AI 文檔](https://developers.cloudflare.com/ai/)
-- [數據庫文檔](https://developers.cloudflare.com/d1/)
-- [存儲文檔](https://developers.cloudflare.com/r2/)
+#### Authentication and Authorization
+- Use Cloudflare Access for application security
+- Implement proper JWT token validation
+- Use environment variables for sensitive data
+- Implement rate limiting and DDoS protection
 
-### 範例項目
-- [Workers Examples](https://github.com/cloudflare/workers-examples)
-- [AI Examples](https://github.com/cloudflare/workers-ai-examples)
-- [Agents Examples](https://github.com/cloudflare/agents-examples)
+#### Data Protection
+- Encrypt sensitive data at rest and in transit
+- Use prepared statements to prevent SQL injection
+- Validate all user inputs
+- Implement proper error handling
 
-### 社群資源
-- [Cloudflare Discord](https://discord.cloudflare.com/)
-- [Stack Overflow](https://stackoverflow.com/questions/tagged/cloudflare-workers)
-- [Reddit r/Cloudflare](https://www.reddit.com/r/cloudflare/)
+#### Network Security
+- Use HTTPS for all communications
+- Implement CORS policies
+- Use security headers
+- Monitor for suspicious activities
 
 ---
 
-*最後更新: 2025-01-06*  
-*文檔維護: 開發團隊* 
+### 📈 Performance Optimization
+
+#### Caching Strategies
+- Use KV for frequently accessed data
+- Implement response caching with appropriate headers
+- Use R2 CDN for static assets
+- Cache AI model responses when appropriate
+
+#### Database Optimization
+- Use indexes for frequently queried columns
+- Implement connection pooling with Hyperdrive
+- Use batch operations for multiple queries
+- Monitor query performance
+
+#### Code Optimization
+- Minimize cold start times
+- Use streaming responses for large data
+- Implement proper error handling
+- Monitor memory usage
+
+---
+
+## Cost Optimization
+
+### 💰 Pricing Considerations
+
+#### Workers
+- Pay per request (100,000 requests/day free)
+- CPU time billing for long-running operations
+- Memory usage affects pricing
+
+#### Data Storage
+- D1: Pay per query
+- R2: Pay per storage and operations (no egress fees)
+- KV: Pay per read/write operation
+- Durable Objects: Pay per instance
+
+#### AI Services
+- Pay per inference
+- Different models have different costs
+- Batch processing can reduce costs
+
+#### Messaging
+- Queues: Pay per message
+- Pub/Sub: Pay per message and subscription
+
+### 🎯 Optimization Strategies
+
+#### Reduce Costs
+- Use appropriate service tiers
+- Implement efficient caching
+- Optimize database queries
+- Use batch operations
+- Monitor usage and adjust accordingly
+
+#### Free Tier Maximization
+- Stay within free tier limits
+- Use efficient data structures
+- Implement proper cleanup
+- Monitor usage patterns
+
+---
+
+## Troubleshooting
+
+### 🔍 Common Issues
+
+#### Cold Start Performance
+- **Problem**: First request is slow
+- **Solution**: Pre-warm connections and use lazy loading
+
+#### Memory Issues
+- **Problem**: Memory limit exceeded
+- **Solution**: Optimize data structures and use streaming
+
+#### Database Connection Issues
+- **Problem**: Connection timeouts
+- **Solution**: Use connection pooling and retry logic
+
+#### AI Model Issues
+- **Problem**: Model loading failures
+- **Solution**: Use appropriate model sizes and implement fallbacks
+
+### 🛠️ Debugging Tools
+
+#### Wrangler CLI
+```bash
+# View logs
+wrangler tail
+wrangler tail --format pretty
+
+# Debug mode
+wrangler dev --inspect
+
+# Test specific environment
+wrangler dev --env staging
+```
+
+#### Cloudflare Dashboard
+- Real-time metrics and analytics
+- Error tracking and debugging
+- Performance monitoring
+- Security insights
+
+---
+
+## Future Roadmap
+
+### 🚀 Upcoming Features
+
+#### Enhanced AI Capabilities
+- More AI models and providers
+- Advanced agent frameworks
+- Custom model training
+- Improved performance
+
+#### Database Enhancements
+- Larger database capacities
+- More database types
+- Advanced query optimization
+- Better migration tools
+
+#### Developer Experience
+- Improved local development
+- Better debugging tools
+- Enhanced documentation
+- More examples and templates
+
+#### Security Improvements
+- Advanced threat protection
+- Enhanced access controls
+- Better compliance features
+- Improved audit capabilities
+
+---
+
+## Conclusion
+
+Cloudflare's serverless platform provides a comprehensive suite of services for building modern, scalable applications. From edge computing with Workers to AI-powered features, the platform offers everything needed to create robust, performant applications.
+
+### Key Benefits
+- **Global Distribution**: Deploy to 200+ locations worldwide
+- **Cost Effective**: Pay only for what you use
+- **Developer Friendly**: Easy-to-use tools and APIs
+- **Secure**: Built-in security features
+- **Scalable**: Automatic scaling based on demand
+
+### Getting Started
+1. Choose the appropriate services for your use case
+2. Set up your development environment with Wrangler
+3. Build and test your application locally
+4. Deploy to production with confidence
+5. Monitor and optimize based on usage patterns
+
+For more detailed information about specific services, refer to the individual service documentation and the [Cloudflare Workers documentation](https://developers.cloudflare.com/workers/).
+
+---
+
+*Last Updated: 2025-01-06*  
+*Maintained by: Development Team* 

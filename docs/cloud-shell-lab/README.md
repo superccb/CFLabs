@@ -1,27 +1,27 @@
-# 云端 Docker Mock 监控 Lab 快速上手（Quick Start）
+# Cloud Docker Mock Monitoring Lab Quick Start
 
-本实验适用于 Google Cloud Shell、Linux、Mac、Windows，帮助你用最简单的方式体验“安全只读的 Docker 监控服务”，并通过 cloudflared 让外部可访问。
-配合 gloud 命令行，可以随时启动测试应用，不用了就关闭，临时需要一个应用很方便，走 cf 或是 google 本身测试 domain 都很方便
-google 测试 domain 改 port 就随时可用
+This lab is suitable for Google Cloud Shell, Linux, Mac, and Windows, helping you experience "secure read-only Docker monitoring services" in the simplest way, and make them externally accessible through cloudflared.
+With the gcloud command line, you can start test applications anytime, close them when not needed, and it's very convenient for temporary application needs, whether using Cloudflare or Google's own test domains.
+Google test domains can be used anytime by changing ports.
 ---
 
-## 1. 环境准备
+## 1. Environment Preparation
 
-- 需要 Python 3.7 及以上
-- 推荐环境：Google Cloud Shell、Linux、Mac、Windows（需安装 Python）
+- Requires Python 3.7 or higher
+- Recommended environments: Google Cloud Shell, Linux, Mac, Windows (Python installation required)
 
 ---
 
-## 2. 获取代码
+## 2. Get the Code
 
 ```bash
-# 进入实验目录
+# Enter the lab directory
 cd docs/cloud-shell-lab
 ```
 
 ---
 
-## 3. 安装依赖
+## 3. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -29,39 +29,39 @@ pip install -r requirements.txt
 
 ---
 
-## 4. 启动 Mock 监控服务
+## 4. Start Mock Monitoring Service
 
 ```bash
 python3 mock_docker_monitor.py
 ```
 
-- 启动后会同时运行：
-  - API 服务：http://localhost:5000
-  - Dashboard：http://localhost:8080
-  - Prometheus Metrics：http://localhost:9000
+- After startup, the following services will run simultaneously:
+  - API Service: http://localhost:5000
+  - Dashboard: http://localhost:8080
+  - Prometheus Metrics: http://localhost:9000
 
 ---
 
-## 5. 访问服务
+## 5. Access Services
 
 ### A. Google Cloud Shell
 
-1. 启动服务后，点击 Cloud Shell 上方“Web Preview”按钮，选择端口 8080（Dashboard）、5000（API）、9000（Metrics）即可访问。
-2. 端口说明：
-   - 8080：可视化 Dashboard
-   - 5000：API 接口
-   - 9000：Prometheus 监控指标
+1. After starting the service, click the "Web Preview" button above Cloud Shell, select port 8080 (Dashboard), 5000 (API), or 9000 (Metrics) to access.
+2. Port descriptions:
+   - 8080: Visual Dashboard
+   - 5000: API Interface
+   - 9000: Prometheus monitoring metrics
 
-### B. 本地 Linux/Mac/Windows
+### B. Local Linux/Mac/Windows
 
-- 直接在浏览器访问 http://localhost:8080
-- 若需让外部访问，继续下一步 cloudflared
+- Directly access http://localhost:8080 in your browser
+- If external access is needed, continue to the next step with cloudflared
 
 ---
 
-## 6. 用 cloudflared 暴露服务到公网
+## 6. Expose Services to Public Network with cloudflared
 
-### 安装 cloudflared
+### Install cloudflared
 
 #### Linux/Mac
 ```bash
@@ -71,26 +71,26 @@ mv cloudflared-linux-amd64 cloudflared
 ```
 
 #### Windows
-- 访问 [cloudflared 官网](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/) 下载对应版本。
+- Visit the [cloudflared official website](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/) to download the corresponding version.
 
-### 启动公网隧道（以 Dashboard 端口为例）
+### Start Public Tunnel (using Dashboard port as example)
 
 ```bash
 ./cloudflared tunnel --url http://localhost:8080
 ```
 
-- 终端会输出一个 https://xxxx.trycloudflare.com 的公网地址，任何人都可以访问你的 Dashboard。
-- 关闭隧道：按 Ctrl+C
+- The terminal will output a public address like https://xxxx.trycloudflare.com that anyone can access your Dashboard from.
+- Close the tunnel: Press Ctrl+C
 
-> **注意：**
-> - Google Cloud Shell 某些网络环境可能不支持 cloudflared 隧道（如遇失败请用 Cloud Run 部署）。
-> - 仅用于临时演示，生产环境请用 Cloud Run 或自有服务器。
+> **Note:**
+> - Some network environments in Google Cloud Shell may not support cloudflared tunnels (if it fails, please use Cloud Run deployment).
+> - Only for temporary demonstrations, for production environments please use Cloud Run or your own servers.
 
 ---
 
-## 7. Cloud Run 部署（可选）
+## 7. Cloud Run Deployment (Optional)
 
-如需长期公网访问，可用 Cloud Run 部署：
+For long-term public access, you can deploy using Cloud Run:
 
 ```bash
 gcloud run deploy docker-monitor-mock \
@@ -103,15 +103,15 @@ gcloud run deploy docker-monitor-mock \
 
 ---
 
-## 7. 用 Docker 运行（零依赖体验）
+## 8. Run with Docker (Zero Dependency Experience)
 
-无需本地安装 Python/依赖，直接用 Docker 体验：
+No need to install Python/dependencies locally, experience directly with Docker:
 
 ```bash
-# 构建镜像（仅需一次）
+# Build image (only needed once)
 docker build -t mock-docker-monitor .
 
-# 运行容器（映射端口，后台运行）
+# Run container (map ports, run in background)
 docker run -d \
   -p 5000:5000 \
   -p 8080:8080 \
@@ -120,31 +120,31 @@ docker run -d \
   mock-docker-monitor
 ```
 
-- 访问方式同上（http://localhost:8080 等）
-- 停止并移除容器：
+- Access method is the same as above (http://localhost:8080, etc.)
+- Stop and remove container:
   ```bash
   docker stop mock-docker-monitor && docker rm mock-docker-monitor
   ```
 
 ---
 
-## 8. 常见问题
+## 9. Common Issues
 
-- **端口无法访问？**
-  - 确认服务已启动，端口未被占用。
-  - Cloud Shell 请用 Web Preview 访问。
-- **cloudflared 隧道失败？**
-  - 检查网络环境，或尝试 Cloud Run。
-- **Windows 用户**
-  - 建议用 WSL 或 PowerShell，命令略有差异。
-
----
-
-## 9. 进阶与原始文档
-
-- 详细原理、进阶用法见 `google-cloud-shell-lab.md`
-- 代码安全、只读，无需担心泄露或误操作
+- **Cannot access ports?**
+  - Confirm the service has started and ports are not occupied.
+  - For Cloud Shell, please use Web Preview to access.
+- **cloudflared tunnel fails?**
+  - Check network environment, or try Cloud Run.
+- **Windows users**
+  - Recommend using WSL or PowerShell, commands may differ slightly.
 
 ---
 
-祝你实验愉快！ 
+## 10. Advanced Usage and Original Documentation
+
+- For detailed principles and advanced usage, see `google-cloud-shell-lab.md`
+- Code is secure and read-only, no need to worry about leaks or misoperations
+
+---
+
+Enjoy your lab experience! 
