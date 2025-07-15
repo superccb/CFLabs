@@ -1,0 +1,14 @@
+{
+  "name": "jsonbin",
+  "version": "1.0.0",
+  "description": "基於 Cloudflare Workers 的簡易 JSON 存儲 API 服務",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "wrangler dev",
+    "deploy": "wrangler publish"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  },
+  "license": "MIT"
+} 

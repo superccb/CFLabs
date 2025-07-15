@@ -1,0 +1,11 @@
+{
+  "name": "cronbin",
+  "version": "1.0.0",
+  "description": "Cloudflare Workers 輕量級定時任務管理工具",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "wrangler dev"
+  },
+  "author": "",
+  "license": "MIT"
+} 
