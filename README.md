@@ -168,6 +168,94 @@ CFLabs/
 
 ---
 
+### 🛠️ 其他 Cloudflare Workers 項目
+
+#### ⏰ cronbin
+> 基於 Cloudflare Workers 的輕量級定時任務（Cron Job）管理工具，支持 Web UI 管理與自動通知。
+
+**技術特性**:
+- Cloudflare Workers
+- KV Namespace
+- 原生 JavaScript
+
+[📖 詳細文檔](./projects/cronbin/README.md)
+
+---
+
+#### 🌐 domain_keeper
+> 基於 Cloudflare Workers 的域名可視化管理面板，支持自定義輸入與自動化集成。
+
+**技術特性**:
+- Cloudflare Workers
+- KV Namespace
+- API 集成
+
+[📖 詳細文檔](./projects/domain_keeper/README.md)
+
+---
+
+#### 📦 jsonbin
+> 基於 Cloudflare Workers 的簡易 JSON 存儲 API 服務。
+
+**技術特性**:
+- Cloudflare Workers
+- KV Namespace
+- JavaScript (ES Modules)
+
+[📖 詳細文檔](./projects/jsonbin/README.md)
+
+---
+
+#### 🌍 deeplx-for-cloudflare
+> 將 DeepLX 無限翻譯 API 部署到 Cloudflare Workers，支持免費無限量翻譯。
+
+**技術特性**:
+- Cloudflare Workers
+- TypeScript/JavaScript
+- RESTful API
+
+[📖 詳細文檔](./projects/deeplx-for-cloudflare/README.md)
+
+---
+
+#### 🔎 semanticsearch
+> 零成本語義搜索引擎，基於 Cloudflare Workers + Vectorize，支持 OpenAPI 標準。
+
+**技術特性**:
+- Cloudflare Workers
+- Vectorize
+- OpenAPI/Swagger
+- TypeScript
+
+[📖 詳細文檔](./projects/semanticsearch/README.md)
+
+---
+
+#### 🗂️ look（拾光集）
+> Cloudflare 全家桶打造的極速書籤導航站，支持 D1、KV、響應式前端。
+
+**技術特性**:
+- Cloudflare Workers
+- D1 數據庫
+- KV 存儲
+- TailwindCSS
+
+[📖 詳細文檔](./projects/look/README.md)
+
+---
+
+#### 📅 subscription-tracker
+> Cloudflare Workers 實現的訂閱服務追蹤與到期提醒工具，支持自動通知與 Web UI 管理。
+
+**技術特性**:
+- Cloudflare Workers
+- KV Namespace
+- Web UI + API
+
+[📖 詳細文檔](./projects/subscription-tracker/README.md)
+
+---
+
 ### 🚧 即將推出的項目
 
 - **KV 緩存示例** - 展示 KV 存儲的最佳實踐
@@ -227,89 +315,66 @@ npm install
 npm run deploy
 ```
 
-### 3. 本地開發
-
-```bash
-# 進入項目目錄
-cd projects/ai-image-generator  # 或其他項目
-
-# 啟動開發服務器
-npm run dev
-```
-
-## 🛠️ 開發指南
-
-### 項目規範
-
-- 每個項目都有獨立的 `README.md` 文件
-- 統一的 GitHub Actions 部署流程
-- 遵循 CF 最佳實踐
-- 完整的錯誤處理和日誌記錄
-- AI 項目包含完整的模型配置說明
-
-### 貢獻流程
-
-1. **Fork 項目**
-2. **創建特性分支** (`git checkout -b feature/AmazingFeature`)
-3. **提交更改** (`git commit -m 'feat: add amazing feature'`)
-4. **推送分支** (`git push origin feature/AmazingFeature`)
-5. **創建 Pull Request**
-
-### 提交規範
-
-遵循 [Conventional Commits](https://www.conventionalcommits.org/) 規範：
-
-```
-feat: 新增功能
-fix: 修復問題
-docs: 文檔更新
-style: 代碼格式調整
-refactor: 代碼重構
-test: 測試相關
-chore: 構建或工具變更
-```
-
-## 🔧 開發環境
-
-- **Node.js**: >= 18.0.0
-- **Wrangler**: 最新版本
-- **Git**: 版本控制
-- **VSCode**: 推薦編輯器
-
-## 📖 學習資源
-
-### 官方文檔
-- [Cloudflare Workers](https://developers.cloudflare.com/workers/)
-- [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/)
-- [Cloudflare Vectorize](https://developers.cloudflare.com/vectorize/)
-- [Cloudflare KV](https://developers.cloudflare.com/workers/runtime-apis/kv/)
-- [Cloudflare D1](https://developers.cloudflare.com/d1/)
-- [Cloudflare Pages](https://developers.cloudflare.com/pages/)
-
-### 社區資源
-- [Workers Examples](https://github.com/cloudflare/workers-examples)
-- [Awesome Cloudflare](https://github.com/irazasyed/awesome-cloudflare)
-- [CF Community](https://community.cloudflare.com/)
-
-## 🤝 貢獻者
-
-感謝所有為這個項目做出貢獻的開發者！
-
-## 📄 許可證
-
-本項目使用 MIT 許可證。詳見 [LICENSE](LICENSE) 文件。
-
-## 🆘 獲取幫助
-
-- 🐛 [報告問題](https://github.com/superccb/CFLabs/issues)
-- 💡 [功能建議](https://github.com/superccb/CFLabs/issues/new?template=feature_request.md)
-- 📧 [聯繫我們](mailto:your-email@example.com)
-
 ---
 
-⭐ 如果這個項目對您有幫助，請給它一個星星！
+### ⚡ 多項目自動化部署（GitHub Actions）
 
-🔗 **相關鏈接**:
-- [Cloudflare 官網](https://www.cloudflare.com/)
-- [Cloudflare 開發者平台](https://developers.cloudflare.com/)
-- [Wrangler CLI 文檔](https://developers.cloudflare.com/workers/wrangler/)
+本倉庫所有 Cloudflare Workers 項目均可通過同一組 GitHub Secrets（同一個 Cloudflare 帳號）集中自動化部署。
+
+#### 操作說明
+- 每個子項目目錄下有獨立的 `wrangler.toml`，可單獨部署。
+- 推薦使用 matrix 策略批量部署多個子項目。
+- 所有項目共用同一組 secrets（如 `CF_API_TOKEN`），無需重複設置。
+- 適合 demo/展示多個 Workers 於同一 Cloudflare 帳號下。
+
+#### 典型 workflow 配置範例
+
+```yaml
+name: Deploy All Workers
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project:
+          - ai-image-generator
+          - ai-text-summarizer
+          - article-recommender
+          - rag-chatbot
+          - cloud-notepad
+          - rss-aggregator
+          - cronbin
+          - domain_keeper
+          - jsonbin
+          - deeplx-for-cloudflare
+          - semanticsearch
+          - look
+          - subscription-tracker
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Wrangler
+        run: npm install -g wrangler
+      - name: Deploy to Cloudflare Workers
+        working-directory: projects/${{ matrix.project }}
+        run: wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+```
+
+#### 注意事項
+- 請在 GitHub Repo 的 Settings > Secrets 設置 `CF_API_TOKEN`，並確保該 token 有權限管理所有目標 Workers。
+- 如需只部署特定子項目，可調整 matrix 內容或用 workflow_dispatch 輸入參數。
+- 每個子項目 wrangler.toml 需正確配置，避免命名衝突。
+
+### 3. 本地開發
+
+```
