@@ -1,0 +1,10 @@
+name = "cronbin"
+main = "src/index.js"
+type = "javascript"
+
+[triggers]
+crons = ["* * * * *"]
+
+[[kv_namespaces]]
+binding = "CRONBIN"
+id = "<YOUR_KV_NAMESPACE_ID>" # 請替換為實際的 KV Namespace ID 

@@ -1,0 +1,13 @@
+name = "subscription-tracker"
+main = "src/index.js"
+compatibility_date = "2023-10-30"
+
+# Note: You need to replace the id and preview_id with your actual KV namespace IDs.
+# You can get them from the Cloudflare dashboard or by running `npx wrangler kv:namespace create SUBSCRIPTIONS_KV`.
+kv_namespaces = [
+  { binding = "SUBSCRIPTIONS_KV", id = "your-kv-namespace-id-here", preview_id = "your-preview-kv-namespace-id-here" }
+]
+
+[triggers]
+# Runs every day at 2 AM UTC. You can change the schedule as needed.
+crons = ["0 2 * * *"] 

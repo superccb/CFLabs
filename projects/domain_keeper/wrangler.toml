@@ -1,0 +1,15 @@
+name = "domainkeeper"
+type = "javascript"
+main = "src/index.js" # 或 "src/domainkeeper.js"，根据需要切换
+compatibility_date = "2024-05-01"
+
+[env.production]
+kv_namespaces = [
+  { binding = "DOMAIN_INFO", id = "<your_kv_namespace_id>" }
+]
+
+[vars]
+CF_API_KEY = "<your_cloudflare_api_key>"
+WHOIS_PROXY_URL = "<your_whois_proxy_url>"
+ACCESS_PASSWORD = "<your_frontend_password>"
+ADMIN_PASSWORD = "<your_backend_password>" 
