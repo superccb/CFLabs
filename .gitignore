@@ -20,8 +20,6 @@ logs/
 .env.*
 
 # Cloudflare Wrangler
-wrangler.toml
-wrangler.*.toml
 wrangler.d1.*
 wrangler.log
 .wrangler/
