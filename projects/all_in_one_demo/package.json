@@ -1,0 +1,16 @@
+{
+  "name": "all-in-one-demo",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "hono": "^3.11.7"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+} 

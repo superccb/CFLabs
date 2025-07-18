@@ -1,0 +1,36 @@
+name = "all-in-one-demo"
+main = "./src/index.ts"
+compatibility_date = "2024-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "marathon-db"
+database_id = "your-database-id"
+
+[[r2_buckets]]
+binding = "IMAGES_BUCKET"
+bucket_name = "marathon-images"
+
+[[queues.producers]]
+queue = "registration-queue"
+binding = "REGISTRATION_QUEUE"
+
+[[queues.consumers]]
+queue = "registration-queue"
+max_retries = 10
+max_batch_size = 10
+
+[[services]]
+binding = "AI_IMAGE_WORKER"
+service = "ai-image-worker"
+
+[[services]]
+binding = "AI_ASSISTANT_WORKER"
+service = "ai-assistant-worker"
+
+[vars]
+ENVIRONMENT = "production" 
